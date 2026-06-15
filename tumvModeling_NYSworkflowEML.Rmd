@@ -1,0 +1,959 @@
+---
+title: "tumvSDM_model_building_testing"
+author: "emlombardi"
+date: "2025-01-14"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Libraries
+
+```{r}
+# Load required packages
+library(caret)
+library(randomForest)
+library(glmnet)
+library(car)
+library(dplyr)
+
+```
+
+# Data
+There are multiple options that could be read into the data file. I'm starting with thinned host populations and presence/absence data for TuMV (N=20 unique sites in NYS). 4 sites have multiple years of data. 
+
+```{r}
+load("/Users/elizabethlombardi/Dropbox (Old)/Research/Human Preferences Paper (Hesperis)/Hesperis TuMV SDM project/R Data Stacks/env.ny_ALLenvVars.RData")
+names(env.ny)
+#maybe standardize the 
+
+
+## ADD WINTER SNOW: this is also in the other script if I need to re-run the whole hting, but I'll just add it here
+#also add snow accumulation (estimated by summing the total precipitation in winter months; coarse)
+env.ny <- env.ny %>%
+  mutate(winter_snowAccum = rowSums(dplyr::select(., starts_with("USA_wc2.1_30s_prec_12") | 
+                                     starts_with("USA_wc2.1_30s_prec_1") | 
+                                     starts_with("USA_wc2.1_30s_prec_2")), na.rm = TRUE)
+  )
+
+```
+
+### NYS
+```{r}
+#all data (individual samples from 2016)
+tumv.nys <- read.csv("~/Dropbox (Old)/Research/Hesperis/April 2021 ELISA/inferred.tumv.AllYears.binary.csv")
+tumv.nys.sf <- st_as_sf(tumv.nys, coords = c("long", "lat"), crs = 4326)
+
+#concatenated by population
+popn.tumv.nys <- read.csv("~/Dropbox (Old)/Research/Hesperis/April 2021 ELISA/popns.AllYears.binary.csv")
+popn.nys.sf <- st_as_sf(popn.tumv.nys, coords = c("long", "lat"), crs = 4326)
+
+```
+
+
+# Standardize predictors
+```{r}
+cols <- c("tumv.binary", "perc.positive", "annual_tavg", "annual_prec", "annual_tmin", "spring_tavg", "spring_prec", "spring_tmin", "winter_prec", "winter_tmin", "winter_tavg", "winter_snowAccum", "crops", "human.footprint", "human.population", "host_cnt", "winter_snowAccum")
+env.ny.tidy <- env.ny %>%
+  dplyr::select(all_of(dplyr::intersect(names(env.ny), cols)))
+
+env.ny.scaled <- env.ny.tidy %>%
+  mutate(across(where(is.numeric), scale)) %>%
+  as.data.frame()
+
+n1<-cor(env.ny.scaled)
+summary(n1)
+
+pca <- prcomp(env.ny.scaled)
+summary(pca)
+pca$rotation #these are the PCA loadings
+biplot(pca)
+plot(pca)
+
+```
+
+# Logistic regressions
+With the host population data from upstate NY, I don't think we have sufficient sample size (i.e. host population locations) to add many variables at the same time. I'll explore options...but still. 
+
+##Basic TuMV percentage linear regressions 
+Just take a look to see what the correlations are between predictor variables in the nys data firs 
+
+```{r}
+library(corrplot)
+cmat <- cor(env.ny.tidy, method="pearson") #pearson correlation computation
+print(cmat)
+corrplot(cmat, method="color", type="lower", )
+
+```
+### Regularization of variables
+Try the Ridge and Lasso regularization methods to try to reduce some multicollinearity in the dataset. 
+These analyses and models are built using glmnet package and are likely what I will report in the paper for the NYS regional analysis. 
+```{r}
+X <- as.matrix(env.ny.tidy %>% dplyr::select(-perc.positive, -tumv.binary))  # predictor variable matrix
+y <- env.ny.tidy$perc.positive  # response variable
+y <- env.ny.tidy$tumv.binary #8 absence, 16 presence populations
+
+#Ridge regression
+ridge.ny <- cv.glmnet(X,y, alpha=0, family="gaussian")
+ridge.ny$lambda.min
+coef(ridge.ny, s="lambda.min")
+plot(ridge.ny)
+
+#Lasso regression
+lasso.ny <- cv.glmnet(X,y,alpha=1,family="gaussian")
+lasso.ny$lambda.min
+lasso_coefs <- coef(lasso.ny, s = "lambda.min")
+lasso_coefs[lasso_coefs != 0]
+lasso_coefs
+
+#interestingly, only crops and human.footprint (and the intercept) are important in this regularization. Can I simply work with this?!
+
+#make some predictions based on the lasso model
+pred.lassoNY <- predict(lasso.ny, newx = X, s = "lambda.min", type = "response")
+pred.class <- ifelse(pred.lassoNY > 0.5, 1, 0)
+head(pred.class)
+
+
+```
+
+### LOO then regularization
+With my small sample size, I'm going to use leave one out (LOO) cross-validation rather than k-fold validation, so here's that code:
+
+Note that the exact code changes with the response variable. Are you using binary TuMV presence/absence, or the percent positive? Y needs to be a factor (line below) if the former. 
+
+Interestingly, the variables to select are different based on the response variable. TuMV presence/absence in lasso loo-cv indicates winter min temps, human.footprint and host_cnt are the important variables to inclue. If I run the same models with perc.positive as the response variable (representing TuMV abundance), I get human.footprint and crops as the only variables to keep. 
+
+**Chosen method** I will use tumv.binary (remember to make it a facto) and the LASSO-CV approach to identify variables for the model. I will therefore use winter_tmin, human.footprint, host_cnt (based on the variables selected by site classification via LASSO), the add annual_prec and annual_temp back to check that out, too. 
+
+It seems like I should use tumv.binary so that I can classify sites as suitable or not and compare to north american models. The code below (with the train() on a factor variable, binomial family and glmnet) will work. For prevalence, I probably want to change to a linear regression (family=gaussian) or beta regression if not normally distributed. 
+
+
+```{r}
+library(boot)
+X<- as.matrix(env.ny.tidy %>% dplyr::select(-perc.positive, -tumv.binary))
+
+#Percent positive
+Y<- env.ny.tidy$perc.positive
+
+#Presence/absence as a factor
+Y<- env.ny.tidy$tumv.binary #abundance
+Y <- as.factor(Y)
+
+#Y<-env.ny.tidy$tumv.binary #presence/absence
+
+loo <- trainControl(method="LOOCV")
+
+
+#Ridge regression with LOO-CV
+ridge.loo <- train(X,Y,
+                   method="glmnet",
+                   trControl = loo, 
+                   tuneGrid = expand.grid(alpha = 0, lambda = 10^seq(-3, 3, length = 100))
+)
+summary(ridge.loo$results)
+
+
+#LASSO regression with LOO-CV
+lasso.loo <- train(
+  X, Y,
+  method = "glmnet",
+  trControl = loo,
+  family="binomial",
+  tuneGrid = expand.grid(alpha = 1, lambda = 10^seq(-3, 3, length = 100))
+)
+
+#choose best lambda values 
+best.ridge.loo <- ridge.loo$bestTune$lambda
+best.lasso.loo <- lasso.loo$bestTune$lambda
+
+print(paste("Best Lambda for Ridge:", best.ridge.loo))
+print(paste("Best Lambda for Lasso:", best.lasso.loo))
+
+#extract coefficients
+ridge_coefs <- coef(ridge.loo$finalModel, s = best.ridge.loo)
+lasso_coefs <- coef(lasso.loo$finalModel, s = best.lasso.loo)
+
+lasso_selected <- lasso_coefs[lasso_coefs != 0] #winter_tmin, human.footprint, host_cnt
+print("Lasso Selected Variables:")
+print(lasso_selected)
+
+#Plots
+plot(lasso.loo$finalModel, xvar="lambda")
+plot(ridge.loo$finalModel, xvar="lambda")
+
+```
+
+### Beta regression to check out prevalence more closely
+```{r}
+install.packages("betareg")
+library(betareg)
+
+X<- as.matrix(env.ny.tidy %>% dplyr::select(-perc.positive, -tumv.binary))
+
+#Percent positive
+Y<- env.ny.tidy$perc.positive
+Y.adj <- (Y * (length(Y) - 1) + 0.5) / length(Y )
+
+#dataframe
+df <- data.frame(Y.adj, X)
+
+#fit model
+fit.beta <- betareg(Y.adj ~ ., data = df)
+
+
+```
+
+### Bayesian Regressions
+I have small small data for NYS so maybe I'll also shift to a bayesian framework (and also that will probably work better for the larger dataset, too?)
+
+```{r}
+library(brms)
+
+#ridge
+
+df <- env.ny.scaled %>%
+  dplyr::select(-tumv.binary)
+df <- env.ny.scaled %>%
+  dplyr::select(-perc.positive)
+
+ridgeBayes <- brms::brm(
+  tumv.binary ~ annual_tavg + crops, 
+  data=df, 
+  family=gaussian(),
+  prior = c(
+    prior(normal(0, 5), class="b"), 
+    prior(normal(0,10), class = "Intercept")
+  ),
+  chains=4, cores=4, iter=4000, warmup=1000
+  )
+summary(ridgeBayes)
+plot(ridgeBayes)
+
+
+#### BAYES with horseshoe priors b/c lasso isn't really appropriate for bayesian inference. Update...look into horseshoe vs lasso priors to make sure I have this right
+
+bayesHorse1 <- brm(
+  perc.positive ~ annual_prec + human.footprint, 
+  data = df, 
+  family = gaussian(),  
+  prior = prior(horseshoe(10), class = "b"),  
+  control = list(adapt_delta = 0.95), 
+  iter = 4000, 
+  chains = 3, 
+  cores = 3  
+)
+summary(bayesHorse1)
+pairs(bayesHorse1)
+plot(bayesHorse1)
+
+#change horseshoe prior number
+bayesHorse2 <- brm(
+  perc.positive ~ annual_tavg + human.footprint, 
+  data = df, 
+  family = gaussian(),  
+  prior = prior(horseshoe(3), class = "b"),  
+  control = list(adapt_delta = 0.95), 
+  iter = 4000, 
+  chains = 3, 
+  cores = 3  
+)
+summary(bayesHorse2)
+pairs(bayesHorse2)
+plot(bayesHorse2)
+
+#compare these two models (all inclusive model options)
+loo(bayesHorse1, bayesHorse2) #bayesHorse2 does a bit better, I think?
+
+
+```
+
+#### Reduce variables
+The models above are fine, I think, but there are really too many variables for the number of observations. I'll use multicollinearity and my knowledge of the system to reduce variables and rerun models.
+
+Based on the correlations in the data (see chunk below) and results of this recent paper on pea aphid distributions, I'm going to reduce variables for NYS to"
+1. cropland
+2. human.footprint
+3. spring_tavg
+4. winter_prec
+```{r}
+#identify correlated variables in the dataframe
+cor(env.ny.scaled %>% select(-perc.positive))   
+
+#plot
+corM <- cor(df[, !names(df) %in% "perc.positive"], use = "pairwise.complete.obs")
+
+corrplot(corM, method = "color", type = "lower", diag = FALSE, tl.cex = 0.8)
+
+```
+
+### Bayesian models (reduced variables)
+Re-run the model from above to include only the variables chosen. 
+
+```{r}
+df2 <- env.ny.scaled %>%
+  dplyr::select(perc.positive, crops, human.footprint, winter_snowAccum, winter_tavg, spring_tavg, host_cnt)
+
+#bayeHorse1 did best with all variables above; diff is just the number for horseshoe priors
+bayesHorse3 <- brm(
+  perc.positive ~ ., 
+  data = df2, 
+  family = gaussian(),  
+  prior = prior(horseshoe(10), class = "b"),  
+  control = list(adapt_delta = 0.95), 
+  iter = 4000, 
+  chains = 3, 
+  cores = 3  
+)
+summary(bayesHorse3)
+pairs(bayesHorse3)
+plot(bayesHorse3) #add to supplement
+
+#check model performance
+loo(bayesHorse1, bayesHorse3)
+
+#posterior predictive checks!
+library(bayesplot)
+pp_check(bayesHorse3, nsamples = 100)  # it kinda fits
+pp_check(bayesHorse3, type = "stat", stat = "mean")  #yep I think it got the mean right
+pp_check(bayesHorse3, type = "scatter_avg") # a little scattered, but generally okay?
+
+
+
+df_resid <- data.frame(
+  Predicted = fitted(bayesHorse3)[,1],
+  Residuals = residuals(bayesHorse3)[,1]
+)
+
+ggplot(df_resid, aes(x = Predicted, y = Residuals)) +
+  geom_point(alpha = 0.6) +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "red") +
+  labs(title = "Residuals vs. Fitted Values",
+       x = "Predicted Values", y = "Residuals") +
+  theme_minimal()
+```
+
+#### Further reduce for fun?
+What if I reduce everything to just crops and human footprint? Will the model do better?
+```{r}
+df3 <- env.ny.scaled %>%
+  dplyr::select(perc.positive, crops, human.footprint)
+
+#bayeHorse1 did best with all variables above; diff is just the number for horseshoe priors
+bayesHorse4 <- brm(
+  perc.positive ~ ., 
+  data = df3, 
+  family = gaussian(),  
+  prior = prior(horseshoe(10), class = "b"),  
+  control = list(adapt_delta = 0.95), 
+  iter = 4000, 
+  chains = 3, 
+  cores = 3  
+)
+summary(bayesHorse4) #human footprint is impactful! low uncertainty
+pairs(bayesHorse4)
+plot(bayesHorse4)
+
+pp_check(bayesHorse4, ndraws = 100)  # it kinda fits
+pp_check(bayesHorse4, type = "stat", stat = "mean")  #yep I think it got the mean right
+pp_check(bayesHorse4, type = "scatter_avg") # a little scattered, but generally okay?
+
+
+
+#################
+
+df4 <- env.ny.scaled %>%
+  select(perc.positive, human.footprint, winter_prec)
+bayesHorse5 <- brm(
+  perc.positive ~ ., 
+  data = df4, 
+  family = gaussian(),  
+  prior = prior(horseshoe(10), class = "b"),  
+  control = list(adapt_delta = 0.95), 
+  iter = 4000, 
+  chains = 3, 
+  cores = 3  
+)
+summary(bayesHorse5) #human footprint is still impactful! low uncertainty
+pairs(bayesHorse5)
+plot(bayesHorse5)
+
+#################
+
+bayesHorse6 <- brm(
+  perc.positive ~ human.footprint + spring_tavg, 
+  data = df, 
+  family = gaussian(),  
+  prior = prior(horseshoe(10), class = "b"),  
+  control = list(adapt_delta = 0.95), 
+  iter = 4000, 
+  chains = 3, 
+  cores = 3  
+)
+summary(bayesHorse6) #human footprint is no longer effecting the model 
+pairs(bayesHorse6)
+plot(bayesHorse6)
+
+#######
+bayesHorse7 <- brm(
+  perc.positive ~ human.footprint + spring_prec, 
+  data = df, 
+  family = gaussian(),  
+  prior = prior(horseshoe(10), class = "b"),  
+  control = list(adapt_delta = 0.95), 
+  iter = 4000, 
+  chains = 3, 
+  cores = 3  
+)
+summary(bayesHorse7) #human footprint is effective again
+pairs(bayesHorse7)
+plot(bayesHorse7)
+
+bayesHorse8 <- brm(
+  perc.positive ~ human.footprint + winter_snowAccum, 
+  data = df, 
+  family = gaussian(),  
+  prior = prior(horseshoe(10), class = "b"),  
+  control = list(adapt_delta = 0.95), 
+  iter = 4000, 
+  chains = 3, 
+  cores = 3  
+)
+summary(bayesHorse8) #human footprint is effective again
+pairs(bayesHorse8)
+plot(bayesHorse8)
+
+
+loo(bayesHorse7, bayesHorse8)
+
+```
+#### Predictive models based on results above
+
+
+```{r}
+#load raster stack
+rast.stack <-rast("/Users/elizabethlombardi/Dropbox (Old)/Research/Human Preferences Paper (Hesperis)/Hesperis TuMV SDM project/Rasters/rasterStack.tif")
+
+#Tidy up the occurrence data
+cols2 <- c("lat", "long", "tumv.binary", "perc.positive", "annual_tavg", "annual_prec", "annual_tmin", "spring_tavg", "spring_prec", "spring_tmin", "winter_prec", "winter_tmin", "winter_tavg", "crops", "human.footprint", "human.population", "host_cnt", "winter_snowAccum")
+env.df <- env.ny %>%
+  select(all_of(dplyr::intersect(names(env.ny), cols2)))
+
+preds <- posterior_epred(bayesHorse3, newdat=env.df) #X is the environmental dataframe
+env.df$predicted_suitability <- colMeans(preds)
+
+#convert predictions back to raster
+pred.rast <- terra::rast(rast.stack)
+values(pred.rast) <- env.df$predicted_suitability
+plot(pred.rast)
+plot(rast.stack)
+
+plot(rast.stack)
+
+
+
+
+```
+
+
+
+## GLM frequentist
+Based on the LOO-CV stuff earlier, the variables I'll start with are: 
+response variable = tumv.binary
+environmental variables = human.footprint, winter_tmin, host_cnt (+/- annual_tavg, annual_prec)
+
+```{r}
+
+m1 <- glm(tumv.binary ~ winter_tmin + human.footprint + host_cnt, data=env.ny.tidy, family=binomial)
+m2 <- glm(tumv.binary ~ winter_tmin + human.footprint + host_cnt + annual_tavg + annual_prec, data=env.ny.tidy, family=binomial)
+
+summary(m1)
+summary(m2)
+
+#what happens when I leave out host_cnt (because it isnt' in larger model)
+m1b <- glm(tumv.binary ~ winter_tmin + human.footprint, data=env.ny.tidy, family=binomial)
+m2b <- glm(tumv.binary ~ winter_tmin + human.footprint + annual_tavg + annual_prec, data=env.ny.tidy, family=binomial)
+
+summary(m1b) #all insignificant but human.footprint Pr(>z)=0.0893 which is a 'trend', I guess. AIC=21.396
+summary(m2b) #AIC 23.773
+
+#now create the null model without human variables
+m0 <- glm(tumv.binary ~ winter_tmin + annual_tavg + annual_prec, data=env.ny.tidy, family=binomial)
+summary(m0) #AIC 26.188
+
+```
+Model m1b is the one to discuss for binary tumv pres/absence and classification of sites across New York. The prevalence of TuMV, however, is a different story. For that, I did run some regression models earlier, which suggested that crops and human footprint were the variables that described site suitability best. I'll start with those and then add annual temperature and precipitation to the models, as well. 
+
+
+```{r}
+m3 <- glm(perc.positive ~ human.footprint + crops, data=env.ny.tidy, family="gaussian")
+m4 <- glm(perc.positive ~ human.footprint + crops + annual_tavg + annual_prec, data=env.ny.tidy, family="gaussian")
+
+summary(m3) # AIC value = -33.5
+summary(m4) # AIC value =-30.068 
+
+#create the null model without human variables
+m00 <- glm(perc.positive ~  annual_tavg + annual_prec, data=env.ny.tidy, family="gaussian")
+summary(m00) #24.147
+```
+
+# OUTCOMES: the models to report
+Report tumv.binary model `m1b` and perc.positive model `m3` 
+
+In the binary model, no predictor variables were statistically significant in predicting presence or absence of tumv, but human footprint was marginal (0.08). In the prevalence model, human_footprint was statistically significant (0.00262) and crops were marginal (0.05149). 
+
+I ran null models to compare the selected variables including and excluding those that represented anthropogenic landscapes. In both the binary and prevalence models, the models that included anthropogenic variables performed better (AIC lower)
+
+#Load rasters for SDM
+```{r}
+#Read
+raster.files <- list.files(path = "/Users/elizabethlombardi/Dropbox (Old)/Research/Human Preferences Paper (Hesperis)/Hesperis TuMV SDM project/Rasters/Input Rasters/", pattern = "\\.tif$", full.names = TRUE)
+
+rasters <- lapply(raster.files, rast) #read them individually
+
+ref <- rasters[[1]] #bioclim rasters chosen as the reference raster to which I will align other rasters
+
+# Resample all others to match the reference
+rasters_aligned <- lapply(rasters, function(r) {
+  resample(r, ref, method = "bilinear")  # use "near" for categorical data
+})
+
+rastStack <- rast(rasters_aligned) 
+names(rastStack) #later, the model function needs columns to be free of special characters
+
+#rename the rasters
+names(rastStack) <- gsub("[^a-zA-Z0-9]", "", names(rastStack))
+names(rastStack)[1:19] <- paste0("bio", 1:19)
+names(rastStack)[20] <- "crops"
+names(rastStack)[21] <- "human.footprint"
+names(rastStack)[22] <- "humanpop"
+
+names(rastStack) #good
+
+####NOW crop to NY area of interest
+#define the Areas Of Interest 
+ny = aoi_get(state = "NY")
+ny.sf = st_as_sf(ny, crs = 4326)
+
+#download federal data to exclude inland water bodies
+nlcd <- get_nlcd(
+  template = ny.sf,
+  label = "NY",
+  year = 2019,
+  dataset = "landcover",
+  force.redo = FALSE
+)
+nlcd.ny <- rast(nlcd)
+ny.land <- nlcd.ny !=11
+ny.land <- as.polygons(ny.land, dissolve = TRUE)
+ny.land.sf <- intersect(ny.sf, ny.land)
+
+#Crop predictor variables to the area of interest
+stackedNY <- crop(rastStack, ny.sf)
+maskedNY<- mask(stackedNY, ny.sf)
+plot(maskedNY)
+
+#But also only select the rasters for the predictor variables we're using: bio11 (mean temp coldest quarter), human.footprint, bio1 (ann.mean temp), bio12 (ann. precipitation)
+library(terra)
+preds<-c("bio1", "bio11", "bio12", "footprint")
+subRastNY <- maskedNY[[preds]]
+names(subRastNY) #need to rename to match the env.ny.tidy data
+
+#rename
+names(subRastNY)[1] <- "annual_tavg"
+names(subRastNY)[2] <- "winter_tmin"
+names(subRastNY)[3] <- "annual_prec"
+names(subRastNY)[4] <- "human.footprint"
+names(subRastNY)
+
+#NY all worldclim variables for comparison
+ny.occs <- terra::vect(tumv.nys, geom=c("long", "lat"), 
+                         crs = enmSdmX::getCRS("WGS84"))
+
+# This is the 'null' dataframe with locations 
+ny.clim <- terra::extract(maskedNY,
+                           ny.occs, 
+                           ID=FALSE)
+
+ny.clim$tumv.binary <- tumv.nys$tumv.binary #adds the response tumv.binary to environmental dataframe
+head(ny.clim)
+```
+
+
+# SDM building 
+I have the models figured out, and may not need to do this. But I'll still create the SDM models with the enmSdmX package using GLM and GAM models for the state of New York. 
+
+Not that only the binary model with presence and absence data will make sense for most SDM methods. 
+
+```{r}
+library(enmSdmX)
+preds.binary <- env.ny.scaled[, c("winter_tmin", "human.footprint")]
+preds.prev <- env.ny.scaled[, c("crops", "human.footprint")]
+
+env.ny.scaled <- as.data.frame(scale(env.ny.tidy[,c("winter_tmin", "human.footprint")]))
+
+#I'm not scaling for now!
+glm1b <- enmSdmX::trainGLM(data = env.ny.tidy,
+                                resp = "tumv.binary",
+                                preds = c("winter_tmin", "human.footprint"),
+                                method = "brglmFit",
+                                out = c("models", "tuning"))
+summary(glm1b$model[[1]]) #still only human footprint
+tuneGLM<-glm1b$tuning #AIC 9.2296 with human footprint=0.0452
+
+### Run same model with only the key abiotic variables from LOO 
+glmEnv <- enmSdmX::trainGLM(
+  data = env.ny.tidy,
+  resp = "tumv.binary",
+  preds = c("winter_tmin", "annual_tavg", "annual_prec"),
+  method = "brglmFit",
+  out = c("models", "tuning")
+)
+summary(glmEnv$models)
+glmEnv$tuning #the best AIC is for the intercept-only model. Not quite what I wanted. 
+
+#also give it a go with annual temperature and precipitation predictors
+#I'm not scaling for now!
+glm.env <- enmSdmX::trainGLM(data = env.ny.tidy,
+                                resp = "tumv.binary",
+                                preds = c("winter_tmin", "human.footprint", "annual_prec", "annual_tavg"),
+                                method = "brglmFit",
+                                out = c("model", "tuning"))
+summary(glm.env$model) #it's the same, actually. the best model is still the best model...hahaha. Still try using this for prediction
+glm1b$tuning #AIC 9.2296 with human footprint=0.0452
+
+
+#TRY a GAM model: NAH
+env.ny.tidy$tumv.binary <- as.integer(round(env.ny.tidy$tumv.binary)) #just make sure pres/abs are integers
+gam1 <- enmSdmX::trainGAM(
+  data = env.ny.tidy,
+  resp = "tumv.binary",
+  preds = c("winter_tmin", "human.footprint"),
+  verbose = TRUE,
+  out = "model"  # or "model", "tuning", etc.
+)
+
+summary(gam1$model) 
+gam1$tuning
+AIC(gam1) #9.830538 which is slightly higher than the GLM
+
+
+#### ADD annual precipitation and average temp into the models 
+glm.env <- enmSdmX::trainGLM(data = env.ny.tidy,
+                                resp = "tumv.binary",
+                                preds = c("human.footprint", "annual_tavg", "annual_prec"),
+                                method = "brglmFit",
+                                out = c("model", "tuning"))
+summary(glm.env)
+glm.env$tuning
+glm.env$model #AIC 9.23
+
+
+gam.env <- enmSdmX::trainGAM(
+  data = env.ny.tidy,
+  resp = "tumv.binary",
+  preds = c("winter_tmin", "human.footprint", "annual_tavg", "annual_prec"),
+  verbose = TRUE,
+  out = "model"  # or "model", "tuning", etc.
+)
+
+summary(gam1$model) 
+gam1$tuning
+AIC(gam1) #AIC 9.83
+
+
+glm1b$tuning
+glmEnv$tuning
+
+```
+## All WC variables
+```{r}
+names(ny.clim)
+preds.all <- c(names(ny.clim[1:22])) #all except the predictor
+
+glm.allVars <- enmSdmX::trainGLM(data = ny.clim, #need to rename variable names earlier in script to get it to run
+                                resp = "tumv.binary",
+                                preds = preds.all,
+                                #w = occ_bg_weights,
+                                method = "brglmFit",
+                                out = c("models", "tuning"))
+summary(glm.allVars$model[[1]]) 
+glm.allVars$tuning #footprint with intercept is still the best model AIC=9.801
+
+### Variable contribution?
+coefs <- coef(glm.allVars$models[[4]]) #the 'best' ([[2]]) model includes only human footprint
+coefs_no_intercept <- coefs[names(coefs) != "(Intercept)"]
+abs_coefs <- abs(coefs_no_intercept)
+var_contrib <- 100 * abs_coefs / sum(abs_coefs) 
+
+#remove footprint, human population and crops
+preds.WC <- c(names(ny.clim[1:19])) #only the worldclim variables now
+
+glm.WC <- enmSdmX::trainGLM(data = ny.clim, #need to rename variable names earlier in script to get it to run
+                                resp = "tumv.binary",
+                                scale = TRUE,
+                                preds = preds.WC,
+                                #w = occ_bg_weights,
+                                method = "brglmFit",
+                                out = c("models", "tuning"))
+summary(glm.WC$model[[1]]) 
+glm.WC$tuning #bio8 and intercept AIC 11.109. 4th best include bio4, too. I think these are the only four that converged.
+```
+
+
+# Predictions
+Based on the models above, I'll use GLM methods with just human.footprint and winter_tmin for now (`glm1b`)
+
+## glm1b with only footprint and winter minimum temperature included in the model
+```{r}
+glm.predict.mapNY <- enmSdmX::predictEnmSdm(model = glm.allVars$model[[4]], newdata = maskedNY,
+                                         na.rm = TRUE)
+glm.predict.mapNY.abiotic <- enmSdmX::predictEnmSdm(model = glm.WC$models[[1]], newdata = maskedNY,
+                                         na.rm = TRUE)
+
+
+# Map GLM prediction
+terra::plot(glm.predict.mapNY,
+            main = "Basic GLM model prediction")
+terra::points(tumv.nys.sf, pch = 16, color="red")
+
+
+#color palette 
+library(wesanderson)
+pal <- wes_palette("Zissou1", n=100, type="continuous")
+
+
+# Define plotting function with color logic
+fun <- function() {
+  # Set colors: 0 = white (TuMV negative), 1 = black (TuMV positive)
+  pt_colors <- ifelse(tumv.nys.sf$tumv.binary == 1, "black", "white")
+  
+  plot(tumv.nys.sf, col = pt_colors, pch = 16, cex = 1.2, add = TRUE)
+  
+  # Add area of interest outline
+  plot(ny.sf$geometry, border = "black", lwd = 1.5, add = TRUE)
+  
+  # Add compass rose in top-left corner
+  #terra::north(ny.sf, scale = 0.1, pos = "topleft", col = "black")
+}
+
+# Plot the raster with points overlaid
+plot(glm.predict.mapNY, col = pal, fun = fun, nc = 4)
+```
+
+### ggplot if desired
+```{r}
+library(ggspatial)
+# Convert raster to data frame (use spatSample if large)
+r_df <- as.data.frame(glm.predict.mapNY, xy = TRUE, na.rm = TRUE)
+names(r_df)[3] <- "prediction"  # rename raster value column
+
+# Make sure sf objects are ready
+ny_outline <- st_as_sf(ny.sf)
+tumv_points <- st_as_sf(tumv.nys.sf)
+
+tumv <- tumv.nys.sf %>%
+  mutate(color = ifelse(tumv.binary == 1, "black", "white"))
+
+#PLOT
+glmMap1b <- ggplot() +
+  geom_raster(data = r_df, aes(x = x, y = y, fill = prediction)) +
+  
+  scale_fill_gradientn(colors = pal) +
+  
+  geom_sf(data = ny.sf, fill = NA, color = "black", size = 0.8) +
+  
+  geom_sf(data = tumv, aes(color = color), size = 2) +
+  scale_color_identity() +
+
+   coord_sf() +
+  annotation_north_arrow(
+    location = "tr",  # top right
+    which_north = "true",
+    pad_x = unit(0.5, "cm"),
+    pad_y = unit(0.5, "cm"),
+    style = north_arrow_fancy_orienteering
+  ) +
+ annotation_scale(
+    location = "tr", 
+    pad_x = unit(0.5, "cm"), 
+    pad_y = unit(0, "cm")  # Increased padding to move it down
+  ) +  
+  theme_minimal() +
+  labs(title = "Predicted GLM Surface with TUMV Presence/Absence") +
+  theme(legend.position = "right")
+
+
+#save the plot
+ggsave("/Users/elizabethlombardi/Dropbox (Old)/Research/Human Preferences Paper (Hesperis)/Hesperis TuMV SDM project/glmMap1b_scaled_withbio8.png", width = 8, height = 6, dpi = 300)
+
+
+```
+
+## ABIOTIC comparison map
+This is from glmEnv model, which had a lower performing AIC and includes only annual_tavg and winter_tmin
+
+```{r}
+glm.predict.mapNY.abiotic
+
+# Convert raster to data frame (use spatSample if large)
+r_df_abio <- as.data.frame(glm.predict.mapNY.abiotic, xy = TRUE, na.rm = TRUE)
+names(r_df_abio)[3] <- "prediction"  # rename raster value column
+
+# Make sure sf objects are ready
+ny_outline <- st_as_sf(ny.sf)
+tumv_points <- st_as_sf(tumv.nys.sf)
+
+tumv <- tumv.nys.sf %>%
+  mutate(color = ifelse(tumv.binary == 1, "black", "white"))
+
+#PLOT
+glmEnv.AbioMap<-ggplot() +
+  geom_raster(data = r_df_abio, aes(x = x, y = y, fill = prediction)) +
+  
+  scale_fill_gradientn(colors = pal) +
+  
+  geom_sf(data = ny.sf, fill = NA, color = "black", size = 0.8) +
+  
+  geom_sf(data = tumv, aes(color = color), size = 2) +
+  scale_color_identity() +
+
+   coord_sf() +
+  annotation_north_arrow(
+    location = "tr",  # top right
+    which_north = "true",
+    pad_x = unit(0.5, "cm"),
+    pad_y = unit(0.5, "cm"),
+    style = north_arrow_fancy_orienteering
+  ) +
+  theme_minimal() +
+  labs(title = "Predicted GLM Surface with TUMV Presence/Absence") +
+  theme(legend.position = "right")
+
+
+#save the plot
+ggsave("/Users/elizabethlombardi/Dropbox (Old)/Research/Human Preferences Paper (Hesperis)/Hesperis TuMV SDM project/glmEnv_abioticVars_map.png", width = 8, height = 6, dpi = 300)
+
+
+```
+
+## WorldClim prediction
+```{r}
+glm.predictWC4 <- enmSdmX::predictEnmSdm(model = glm.WC2$model[[4]], newdata = maskedNY,
+                                         na.rm = TRUE)
+glm.predictWC1 <- enmSdmX::predictEnmSdm(model = glm.WC2$model[[1]], newdata = maskedNY,
+                                         na.rm = TRUE)
+
+## GGPLOT 
+# Convert raster to data frame (use spatSample if large)
+r_df_WC <- as.data.frame(glm.predictWC4, xy = TRUE, na.rm = TRUE)
+names(r_df_WC)[3] <- "prediction"  # rename raster value column
+
+#PLOT
+WConly.mod4<-ggplot() +
+  geom_raster(data = r_df_WC, aes(x = x, y = y, fill = prediction)) +
+  
+  scale_fill_gradientn(colors = pal) +
+  
+  geom_sf(data = ny.sf, fill = NA, color = "black", size = 0.8) +
+  
+  geom_sf(data = tumv, aes(color = color), size = 2) +
+  scale_color_identity() +
+
+   coord_sf() +
+  annotation_north_arrow(
+    location = "tr",  # top right
+    which_north = "true",
+    pad_x = unit(0.5, "cm"),
+    pad_y = unit(0.5, "cm"),
+    style = north_arrow_fancy_orienteering
+  ) +
+  theme_minimal() +
+  labs(title = "Predicted GLM Surface with TUMV Presence/Absence") +
+  theme(legend.position = "right")
+
+#save
+#ggsave("/Users/elizabethlombardi/Dropbox (Old)/Research/Human Preferences Paper (Hesperis)/Hesperis TuMV SDM project/glmWC.NYS_4thbest.png", width = 8, height = 6, dpi = 300)
+
+ggsave("/Users/elizabethlombardi/Dropbox (Old)/Research/Human Preferences Paper (Hesperis)/Hesperis TuMV SDM project/glmWC.NYS_bestAIC.png", width = 8, height = 6, dpi = 300)
+
+
+```
+
+
+So now I have the NYS prediction map for a GLM based on environmental variables identified through lasso LOO-CV selection. I actually could (and did) also run the enmSdmX trainGLM function with more than just the two key variables (predictors = human population, min winter temp, annual precipitation and annual tavg), but the best model is still only the one that has human footprint alone. 
+
+
+
+
+
+##########
+# OLD
+##########
+```{r}
+#annual climate and human footprint (integrated variables): OLD MODELS for now
+m1 <- glm(tumv.binary ~ annual_tmin + annual_prec + human.footprint, data=env.ny.tidy, family=binomial)
+summary(m1)
+m1crop <- glm(tumv.binary ~ annual_tmin + annual_prec + crops, data=env.ny.tidy, family=binomial)
+summary(m1crop) #AIC 27.26
+
+m2 <- glm(perc.positive ~ annual_tmin + annual_prec + human.footprint, data=env.ny.tidy, family=gaussian())
+summary(m2)
+
+m2b <- glm(perc.positive ~ annual_tmin + annual_prec + crops, data=env.ny.tidy, family=gaussian())
+summary(m2b)
+
+m2c <- glm(perc.positive ~ annual_tmin + human.footprint, data=env.ny.tidy, family=gaussian())
+summary(m2c)
+
+m2d <- glm(perc.positive ~ annual_prec + human.footprint + host_cnt, data=env.ny.tidy, family=gaussian())
+summary(m2d) #this might be the one. Just annual_precipitation and human footprint
+plot(m2d$effects)
+
+
+m2e <- glm(perc.positive ~ annual_prec + crops, data=env.ny.tidy, family=gaussian())
+summary(m2e) #meh not great. 
+
+
+m3 <- glm(perc.positive ~ winter_prec + spring_tmin +human.footprint, data=env.ny.tidy, family=gaussian())
+summary(m3)
+
+m4 <- glm(perc.positive ~ winter_prec + spring_tmin, data=env.ny.tidy, family=gaussian())
+summary(m4) #worse AIC without the human.footprint variable
+
+```
+#### Emmeans 
+Give this some time to explore the models above
+
+```{r}
+#best model from above:
+m2d <- glm(perc.positive ~ annual_prec + human.footprint, data=env.ny.tidy, family=gaussian())
+summary(m2d) #this might be the one. Just annual_precipitation and human footprint
+plot(m2d$effects)
+
+emmeans(m2d, "human.footprint") #I don't think this is helpful at all
+
+```
+
+# MaxEnt for fun: NOT WORKING YET
+I'll use MaxNet from enmSdmX package 
+```{r}
+set.seed(123)
+cores <- 2
+
+#subdf <- train_data_scaled[1:1000,]
+ny.vars <- c("annual_prec", "annual_tavg", "human.footprint", "crops")
+max.ny1 <- enmSdmX::trainMaxNet(
+  data = env.ny.tidy, 
+  resp = env.ny.tidy$tumv.binary,
+  preds = ny.vars,
+  regMult = 5, 
+  #jackknife = TRUE,
+  verbose = TRUE,
+ # out = c("models", "tuning"), #with the hash, it returns default of best model (based on AICc)
+  cores = cores
+  )
+
+```
+

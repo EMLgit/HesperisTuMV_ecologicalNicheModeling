@@ -1,0 +1,866 @@
+---
+title: "HespTuMV_SDM_NorthAmerica"
+author: "emlombardi"
+date: "2025-04-23"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+#may also need to set Java installation path
+#Sys.setenv(JAVA_HOME = "/Library/Internet Plug-Ins/JavaAppletPlugin.plugin/Contents/Home+ /Library/Internet Plug-Ins/JavaAppletPlugin.plugin/Contents/Home")
+```
+
+# Intro
+This script is the version to be published with the paper. It was built interatively though many previous scripts, and is especially dependent on Kass_HespTuMVplay.R, which is a script guided by the publication by Kass et al. on species distribution modelling best practices. 
+
+The objective of this script is to identify environmental variables that predict TuMV presence in Hesperis matronalis populations across North America. 
+
+# Libraries & Prep
+```{r libraries}
+library(ggplot2)
+library(wesanderson)
+library(RColorBrewer)
+library(dplyr)
+library(terra)
+library(sf)
+library(raster)
+library(geodata)
+library(enmSdmX)
+library(AOI)
+library(mapview)
+library(brglm2)
+library(rnaturalearth)
+library(rnaturalearthdata)
+library(rgbif)
+library(rJava)
+library(pROC)
+
+#set wd
+setwd("/Users/elizabethlombardi/Dropbox (Old)/Research/Human Preferences Paper (Hesperis)/Hesperis TuMV SDM project")
+
+#set AOI polygons
+#define the Areas Of Interest 
+ny = aoi_get(state = "NY")
+ny.sf = st_as_sf(ny, crs = 4326)
+
+#just use a bounding box for North America 
+bb.NA <- ext(-170, -30, 5, 85) # minx, maxx, miny, maxy
+NA.aoi <- as.polygons(bb.NA, crs = "EPSG:4326")
+plot(NA.aoi)
+
+```
+
+# Read Rasters
+The environmental predictor variables were already selected, projected, aligned, etc. and then saved to my local computer. A separate script will be included for replication of this step. 
+
+```{r}
+#Read
+raster.files <- list.files(path = "/Users/elizabethlombardi/Dropbox (Old)/Research/Human Preferences Paper (Hesperis)/Hesperis TuMV SDM project/Rasters/Input Rasters/", pattern = "\\.tif$", full.names = TRUE)
+
+rasters <- lapply(raster.files, rast) #read them individually
+
+ref <- rasters[[1]] #bioclim rasters chosen as the reference raster to which I will align other rasters
+
+# Resample all others to match the reference
+rasters_aligned <- lapply(rasters, function(r) {
+  resample(r, ref, method = "bilinear")  # use "near" for categorical data
+})
+
+rastStack <- rast(rasters_aligned) 
+names(rastStack) #later, the model function needs columns to be free of special characters
+
+#rename the rasters
+names(rastStack) <- gsub("[^a-zA-Z0-9]", "", names(rastStack))
+names(rastStack)[1:19] <- paste0("bio", 1:19)
+names(rastStack)[21] <- "footprint"
+names(rastStack)[22] <- "humanpop"
+
+names(rastStack) #good
+
+```
+
+# Load TuMV data
+These are the occurrence locations (presence-only) for TuMV in Hesperis matronalis. Based on image analysis of community collected data from iNaturalist. 
+
+I will also remove duplicates, clean, etc. 
+
+```{r}
+tumv.na <- read.csv("~/Desktop/Research/Hesperis/Hesperis Computer Vision project/TuMV presence coords 2022 CLEAN.csv")
+
+#remove duplicate IDs
+tumv.cl <- tumv.na %>%
+  group_by(ID) %>%
+  arrange(desc(notes != "")) %>%  # Prioritize rows where 'notes' is not empty
+  slice(1) %>%  # Keep the first row per ID
+  ungroup()
+
+#convert to spatial vector
+tumv.cl <- tumv.cl %>% 
+  mutate(across(where(is.character), ~ suppressWarnings(as.numeric(.)))) %>%
+ rename("decimalLongitude"=longitude) %>%
+  rename("decimalLatitude"=latitude) %>%
+  mutate(species = "TuMV")
+
+tumv.cl <- tumv.cl %>%
+  dplyr::filter(accuracy.meters < 1000) #207 occs with accuracy below 1000 meters
+
+#tumv.check <- tumv.cl %>% dplyr::filter(accuracy.meters > 1000) #0 occs with accuracy worse than 1000 meters
+
+occs_vect <- terra::vect(tumv.cl, geom=c("decimalLongitude", "decimalLatitude"), 
+                         crs = enmSdmX::getCRS("WGS84"))
+
+hist(occs_vect$accuracy.meters, breaks=50)
+
+```
+
+# Sampling Bias analysis
+This chunk of code will create an estimate of sampling bias in the TuMV dataset. I'll use the R package `sampbias` to visually and quantitatively assess sources of biase in the spatial distribution of occurrences in the data. 
+
+Note that this is a bit tricky for our analysis because the virus distribution is nested in the host distribution, which is impacted by humans. This is a true factor, not only a sampling bias. Furthermore, using iNat observations means that there is implictly an association between human density and TuMV-Hesperis interaction. That is okay, though; it's observational in this study, and the fact that host-human-virus spatial correlation is high is part of what I want to say. 
+
+```{r}
+occs_sampbias <- tumv.cl[, c("species", "decimalLongitude", "decimalLatitude")]
+#restrict_sample <- terra::convHull(occs_vect) |> terra::buffer(width = 200 * 1000) |> sf::st_as_sf() #this is a convext hull, but very big
+NAhull <- terra::convHull(occs_vect) |> terra::buffer(width = 200 * 1000) |> sf::st_as_sf() #subset to first 10 records
+rast.pnw <- terra::crop(rastStack[[1]], NAhull)
+#mask.pnw <- terra::mask(envs_terra$wc2.1_30s_bio_1, restrict_sample) #most computationally costly, but maybe more accurate? check
+
+# Raster of study area
+inp_raster <- terra::rast(rast.pnw[[1]], vals = 0)
+
+#calculate the bias
+bias <- sampbias::calculate_bias(occs_sampbias,
+                                 res=terra::res(inp_raster)[1], mcmc_iterations = 10000,
+                                 buffer=.05, 
+                                 restrict_sample = NAhull)
+summary(bias)
+t<-plot(bias) #clearly we've got some biases. Specifically with roads. Unsurprising, really. 
+
+
+#map the bias for funsies
+biasStack <- sampbias::project_bias(bias)
+raster::plot(biasStack, nr = 3,
+             legend.mar = 5.7)
+mapview(biasStack$Total_percentage)
+
+#project the biases to same projection as records
+biasStack <- terra::project(biasStack, "epsg:4326")
+names(biasStack)
+
+```
+
+### Load Bias Rasters
+If you just want to reload the bias rasters, do so like this:
+
+```{r}
+####READING BIAS RASTERS FROM LOCAL COMPUTER
+bias.folder <- list.files(path = "/Users/elizabethlombardi/Dropbox (Old)/Research/Human Preferences Paper (Hesperis)/Hesperis TuMV SDM project/Rasters/Bias Rasters/", pattern = "\\.tif$", full.names = TRUE)
+
+bias.rasts <- lapply(bias.folder, rast) #read them individually
+
+ref <- rasters[[1]] #bioclim rasters chosen?
+
+# Resample all others to match the reference
+rasters_aligned2 <- lapply(bias.rasts, function(r) {
+  resample(r, ref, method = "bilinear")  # use "near" for categorical data
+})
+
+biasStack<- rast(rasters_aligned2)
+names(biasStack)
+
+#use the Total_percentage raster to 'down weight' areas around all sources of bias
+samp_weight_rast <- biasStack[["Total_percentage"]]
+bias_rel_max <- terra::extract(samp_weight_rast, occs_vect) #I think this is where the 2 NA values are introduced. 
+
+#rescale 
+bias_rel_max <- bias_rel_max[, 2]
+occ_weights <- abs(bias_rel_max) / 100
+
+```
+
+### Plot Bias
+Quick check of sources of bias across North America, clipped to TuMV presence hull
+
+```{r}
+# Convert raster to a dataframe for ggplot
+bias.total <- biasStack$Total_percentage
+bias_df <- as.data.frame(biasStack, xy = TRUE)
+
+# Load North America map
+north_america <- ne_countries(continent = "North America", returnclass = "sf")
+
+# Plot the raster with a base map
+biasmap<-ggplot() +
+  geom_sf(data = north_america, fill = "beige", color = "black") + # Add country borders
+  geom_raster(data = bias_df, aes(x = x, y = y, fill=Total_percentage)) + 
+  scale_fill_viridis_c(name = "Bias Score") +  # Color scale for better visualization
+  coord_sf(xlim = c(-170, -50), ylim = c(10, 80), expand = FALSE) + # Adjust extent
+  labs(title = "Spatial Bias in Occurrence Data", x = "Longitude", y = "Latitude") +
+  theme_minimal()
+```
+
+
+# Background points
+To generate pseudoabsence locations in the area of interest, I will use host occurrence data to define the area from which the presence of TuMV is possible (since it's nested in host occurrences for this model). Alternatively, I could also generate random pseudoabsence locations. Here, I won't. 
+
+NOTE TO SELF: I might want to reconsider the host background occs. Include clean herbarium records for more complete ecological niche of the host. 
+
+### Host occurences
+Load presence data for hosts, which will be used to manage sampling bias. There are two options. Either use human observations only or use observations AND herbarium specimens. I think the latter is better...
+
+```{r}
+#option 1
+#read hesperis matronalis gbif records that are ONLY from recent years and human observations
+host.occs<-read.csv("/Users/elizabethlombardi/Dropbox (Old)/Research/Human Preferences Paper (Hesperis)/Hesperis TuMV SDM project/gbif_Hmatronalis_cleanBackgroundOccs.csv")
+table(host.occs$basisOfRecord) #these are only human observations. 
+min(host.occs$year) #only since 2015
+
+#option 2: read all hesperis matronalis gbif records (includes herbarium specimens)
+host.all <- read.delim("~/Dropbox (Old)/Research/Human Preferences Paper (Hesperis)/Hesperis TuMV SDM project/HostGBIF_April242025.csv")
+table(host.all$basisOfRecord)
+summary(host.all$year)
+
+host.all.cl <- host.all %>%
+  filter(!decimalLatitude == "") %>%
+  filter(!decimalLongitude== "") %>%
+  filter(!year =="") %>%
+  filter(!coordinateUncertaintyInMeters > 1000) %>%
+  filter(!coordinateUncertaintyInMeters == "")
+
+min(host.all.cl$year)
+summary(host.all.cl$coordinateUncertaintyInMeters)
+hist(host.all.cl$coordinateUncertaintyInMeters)
+
+
+#Use GeoThinner package 
+library(GeoThinneR)
+
+#thin to 1 kilometer across North America
+start.time <- Sys.time()
+host.thinned <- thin_points(
+  data = host.all.cl,     # Dataframe with coordinates
+  lon_col = "decimalLongitude",     # Longitude column name
+  lat_col = "decimalLatitude",     # Latitude column name
+  method = "distance", # Method for thinning
+  thin_dist = 1,      # Thinning distance in km,
+  trials = 5,          # Number of trials
+  all_trials = FALSE,   # Return all trials
+  seed = 123           # Seed for reproducibility
+)
+end.time <- Sys.time()
+time.taken <- round(end.time - start.time,2)
+time.taken #1.34 minutes
+
+#explore the thinned dataset
+sapply(host.thinned$retained, sum) #retained 13,428 records. Removed 14255 records.
+
+# Transform back to WGS84 if needed
+host.thinned <- as_sf(host.thinned)
+host.thinned <- st_transform(host.thinned, crs = 4326)
+
+
+#rename the cleaned full dataset so that code works for either option
+host.occs = host.thinned
+
+#make sure there are still lat/long columns
+host.occs <- st_transform(host.occs, crs = 4326)
+host.occs$decimalLongitude <- sf::st_coordinates(host.occs)[, 1]
+host.occs$decimalLatitude <- sf::st_coordinates(host.occs)[, 2]
+
+
+#compare pre and post thinning: they're the same because of how I downloaded and cleaned, I guess?
+dim(host.all.cl)
+dim(host.thinned)
+dim(host.occs)
+
+```
+
+## Buffer for background sampling
+Create a buffer around each known host population (thinned already to 1 kilometer). I first created a 100 kilometer buffer around each location, then 10 kilometers. The larger buffer models (100 kilometer) had better AUC scores for model prediction steps. I'll also try 50 kilometers, which might improve both biological relevance and AUC scores. 
+```{r}
+bg_buff <- flexsdm::calib_area(
+  data = host.occs,
+  x = "decimalLongitude",
+  y = "decimalLatitude",
+  method = c("buffer", width = 50000),  # 0 km buffer; AUC score
+  crs = "epsg:4326"
+)
+
+rast_buff <- terra::rasterize(bg_buff, rastStack$cropland, field = 0, background = NA) #empty raster with extent and res matching data
+
+#crop to calibration buffer area
+env_crop <- terra::crop(rastStack$cropland, bg_buff)
+#downsample raster to make it manageable
+env_try <- terra::aggregate(env_crop, fact = 4, fun = mean)
+
+gc() #force garbage collection to ensure memory is free for next line
+host.occs <- as.data.frame(host.occs)
+bg_pnts_buff <- flexsdm::sample_background(data=host.occs,
+                                           x="decimalLongitude",
+                                           y="decimalLatitude",
+                                     calibarea = rast_buff,
+                                     rlayer = rast_buff,
+                                     n = 5000) #5000 points for now
+bg_pnts_buff$pr_ab <- NULL #remove the last column; can I adjust and make this a weight based on host density?
+write.csv(bg_pnts_buff, "/Users/elizabethlombardi/Dropbox (Old)/Research/Human Preferences Paper (Hesperis)/Hesperis TuMV SDM project/host_backgroundpnts_hostBuffered.csv", row.names = TRUE)
+
+
+terra::plot(rastStack$bio1)
+terra::plot(bg_buff, add = TRUE)
+points(bg_pnts_buff, bg="blue")
+mapview(bg_buff)
+
+#get climate data for the background points
+bg_clim2 <- terra::extract(rastStack, bg_pnts_buff, ID=FALSE) #this is the host-weighted background bioclim df
+bg_clim2 <- na.omit(bg_clim2) #remove simulated background points with NA values (likely water!)
+
+bg2<-cor(bg_clim2, method="spearman")
+
+#dendroram of environmental variables that are correlated
+corrdist2 <- 1-abs(bg2)
+corrdist2 <- as.dist(corrdist2)
+dendro2 <- hclust(corrdist2)
+par(mar = c(0, 2.5, 2.5, 0))
+plot(dendro2, xlab = "",
+     ylab = "1 - absolute correlation",
+     sub = "")
+abline(h = 0.3,
+       col = "red",
+       lty = "dotted")
+
+#the correlelogram changes based on the buffer size around hosts! Just a little. Like one or two variables
+#based on this correlelogram (whatever), I'll use the [[bracketed]] following predictors in the models:
+#1. 4 or 7 [[7]] annual temperature range
+#2. 3, 9, 6 or 11 [[11] Mean temp of coldest quarter]
+#3. 8 mean temp of wettest quarter
+#4. cropland
+#5. 1, 5 or 10 [[1]] annual mean temp
+#6. popn or footprint [[footprint]]
+#7. 2 mean diurnal range
+#8. 19, 12, 13, 16 [[12]] annual precipitation
+#9. 18 precp of warmest quarter
+#10. 15, 14, 17 [[15]] precip seasonality
+
+
+#Identify which predictors are correlated with each other and reduce colliearity
+predsHost.wc <- paste0("bio", c(1, 2, 7, 8, 15, 18, 19)) #start with these based on biology and dendrogram for 50 km
+predsHost <- c(predsHost.wc, "cropland", "footprint") 
+
+```
+
+# Model Training
+I'm going to use the package enmSdmX for training and prediction. https://github.com/adamlilith/enmSdmX
+
+### prep
+```{r}
+tumv_clim <- terra::extract(rastStack,
+                           occs_vect, 
+                           ID=FALSE)
+
+# Vector indicating presence/host background
+presbg <- c(rep(1, nrow(occs_vect)), 
+             rep(0, nrow(bg_clim2)))
+# Combine climate for occurrences and background
+clim <- rbind(tumv_clim, bg_clim2) #host background bioclimatic data
+train_data <- cbind(presbg, clim) 
+train_data #9320 simulated absence points; 207 true presence points (for TuMV)
+
+#scale data for GLM (standardize)
+train_data_scaled <- train_data[, c("presbg", predsHost)] #grab only relevant predictors
+train_data_scaled[, predsHost] <- scale(train_data_scaled[, predsHost])
+train_data_scaled <- train_data_scaled %>%
+  mutate(row_id = row_number()) %>%  # Add row numbers to track original rows
+  filter(!(row_id %in% (train_data_scaled %>%
+                          mutate(row_id = row_number()) %>%
+                          dplyr::filter(presbg == 0) %>%
+                          slice_sample(n = 2) %>%
+                          pull(row_id)))) %>%
+  dplyr::select(-row_id)  # Remove temporary row_id column
+nrow(train_data_scaled)
+
+centers <- colMeans(train_data[, predsHost]) #remember for later
+scales <- apply(train_data[, predsHost], 2, sd)
+
+
+# Ensure total weights of occurrences is same as total weights of background # sites. Give background points a total weight equal to the sum of the occurrence weights
+bg_weights <- rep(sum(na.omit(occ_weights)) / nrow(bg_clim2), nrow(bg_clim2)) 
+occ_bg_weights <- c(occ_weights, bg_weights)
+anyNA(occ_bg_weights) #2 NA values still; both are TuMV presence rows 45 and 185. From occ_weights
+occ_bg_weights <- na.omit(occ_bg_weights) #I have to remove two from 'train_data_scaled', too
+
+#Scaled rasters
+scaled_rasts <- terra::scale(rastStack[[predsHost]], center = centers,
+                                  scale = scales)
+
+#center training data
+train_data_scaled[, predsHost] <- scale(train_data_scaled[, predsHost])
+
+```
+
+###k-folds
+```{r}
+set.seed(123)  # for reproducibility
+
+folds <- rep(NA, nrow(train_data_scaled))
+
+# Separate presences and background
+presFold <- which(train_data_scaled$presbg == 1)
+bgFold <- which(train_data_scaled$presbg == 0)
+
+# Assign folds separately for presences and background
+folds[presFold] <- sample(rep(1:5, length.out = length(presFold)))
+folds[bgFold] <- sample(rep(1:5, length.out = length(bgFold)))
+
+# Add folds as a new column
+train_data_scaled$fold <- folds
+
+names(train_data_scaled)
+
+#Create training and testing dataframes
+testDF <- train_data_scaled %>%
+  dplyr::filter(fold == "1")
+trainDF <- train_data_scaled %>%
+  dplyr::filter(!fold=="1")
+
+#center testing data
+testDF[, predsHost] <- scale(testDF[, predsHost])
+
+#center training data
+trainDF[, predsHost] <- scale(trainDF[, predsHost])
+
+
+```
+
+## SAVE ENVIRONMENT BEFORE MODELING####
+
+```{r}
+save.image(file="/Users/elizabethlombardi/Dropbox (Old)/Research/Human Preferences Paper (Hesperis)/Hesperis TuMV SDM project/prepEnvironment.RData")
+load("/Users/elizabethlombardi/Dropbox (Old)/Research/Human Preferences Paper (Hesperis)/Hesperis TuMV SDM project/prepEnvironment.RData")
+```
+
+### GLM
+
+#### WC+HI
+Worldclim plus human impact GLM models. 
+```{r}
+set.seed(234)
+
+#this step will cycle through all possible models
+glm1 <- enmSdmX::trainGLM(data = train_data_scaled, #need to rename variable names earlier in script to get it to run
+                                resp = "presbg",
+                                preds = predsHost,
+                                #w = occ_bg_weights,
+                                method = "brglmFit",
+                                out = c("model", "tuning"))
+summary(glm1$model) 
+glm1$tuning #lowest AICc model at top (location 1) == 1 + bio15 + bio7 + footprint 
+
+### Variable contribution?
+coefs <- coef(glm1$model)
+coefs_no_intercept <- coefs[names(coefs) != "(Intercept)"]
+abs_coefs <- abs(coefs_no_intercept)
+var_contrib <- 100 * abs_coefs / sum(abs_coefs) #variables in the best model, when glm1 is run with full dataset 
+###
+
+# GLM model comparison of training and testing data
+glm.predict <- enmSdmX::predictEnmSdm(model = glm1$model, newdata = testDF[,predsHost],
+                                         na.rm = TRUE)
+
+roc.glm <- roc(response=testDF$presbg, predictor=glm.predict)
+plot(roc.glm)
+auc(roc.glm) #0.9517 so this is pretty good. Now it's 0.8651 when I thinned the host dataset. 50 kilometer buffer = 0.946
+
+
+#create prediction and map it
+glm.predict.map <- enmSdmX::predictEnmSdm(model = glm1$model, newdata = scaled_rasts,
+                                         na.rm = TRUE)
+# Map GLM prediction
+terra::plot(glm.predict.map,
+            main = "Basic GLM model prediction")
+terra::points(occs_vect, pch = 16)
+
+
+```
+#### WC alone
+Worldclim data only. No human impact variables (the same WC variables). 
+
+Note that this confirms that the models perform better with human impact variables based on AICc values. 
+```{r}
+#this step will cycle through all possible models
+glm2 <- enmSdmX::trainGLM(data = trainDF, #need to rename variable names earlier in script to get it to run
+                                resp = "presbg",
+                                preds = predsHost.wc,
+                                #w = occ_bg_weights,
+                                method = "brglmFit",
+                                out = c("model", "tuning"))
+summary(glm2$model) 
+glm2$tuning #lowest AICc model at top (location 1) == 1 + bio15 + footprint 
+
+# GLM model comparison of training and testing data
+glm2.predict <- enmSdmX::predictEnmSdm(model = glm2$model, newdata = testDF[,predsHost],
+                                         na.rm = TRUE)
+
+roc.glm2 <- roc(response=testDF$presbg, predictor=glm2.predict)
+plot(roc.glm2)
+auc(roc.glm2) #0.8099
+
+#create prediction and map it
+glm2.predict.map <- enmSdmX::predictEnmSdm(model = glm2$model, newdata = scaled_rasts,
+                                         na.rm = TRUE)
+
+plot(glm2.predict.map)
+
+
+# Map GLM prediction
+terra::plot(glm2.predict.map,
+            main = "Basic GLM model prediction: WorldClim variables ONLY")
+terra::points(occs_vect, pch = 16)
+
+
+```
+
+
+### Boosted Regression Tree models
+Note that I might want to revise so that all of the environmental predictors are included in BRT modeling. I would need to recreate a new dataset with all of the variables, maybe?
+```{r}
+set.seed(123)
+cores <- 2
+
+#BRT with subset of variables
+#dfsub <- train_data_scaled2[1:1049, ] 
+brt1 <- enmSdmX::trainBRT(data = train_data_scaled, 
+                                resp = "presbg",
+                                preds = predsHost,
+                                learningRate = 0.001, #conservative learning rate for small sample size
+                                treeComplexity = c(2, 3), # interactive effects allowed
+                                minTrees = 3000, # minimum trees for reliable model(?), but fast
+                                maxTrees = 10000, 
+                                tryBy = 'treeComplexity', #could also change to learning rate; roc is slightly worse if using learning rate
+                                anyway = TRUE, # return models that did not converge
+                                verbose = TRUE,
+                                cores = cores)
+
+brt.contributions<-brt1$contributions #for the model on the full dataset
+brt1$betas
+summary(brt1$contributions$rel.inf) #7.212 is the median relative inf contribution. Maybe keep all with values above that?
+print(brt1)
+
+
+# BRT with only WorldClim predictors
+predsHost.wc
+brt2 <- enmSdmX::trainBRT(data = trainDF, 
+                                resp = "presbg",
+                                preds = predsHost.wc,
+                                learningRate = 0.001, #conservative learning rate for small sample size
+                                treeComplexity = c(2, 3), # interactive effects allowed
+                                minTrees = 3000, # minimum trees for reliable model(?), but fast
+                                maxTrees = 10000, 
+                                tryBy = 'treeComplexity', #could also change to learning rate; roc is slightly worse if using learning rate
+                                anyway = TRUE, # return models that did not converge
+                                verbose = TRUE,
+                                cores = cores)
+
+ brt2$contributions 
+summary(brt2$contributions$rel.inf)
+print(brt2)
+
+
+# BRT model compare testing and training data
+brt.predict <- enmSdmX::predictEnmSdm(model = brt2, newdata = testDF[,predsHost],
+                                         na.rm = TRUE)
+
+roc.brt <- roc(response=testDF$presbg, predictor=brt.predict)
+plot(roc.brt)
+auc(roc.brt)#0.8669 this includes all variables in the boosted regression tree approach
+#0.9532 50 km predsHost (reduced variables). I'm going to reduce the variables!!! USE THIS (brt1)
+#0.9731 when I include all variables in BRT model
+
+#BRT prediction mapping
+brt.predict.map <- enmSdmX::predictEnmSdm(brt1, scaled_rasts)
+plot(brt.predict.map)
+
+```
+
+### Maxent model
+Also add a maxent modeling approach. I'll probably take an ensemble model stacking approach to figure it all out later. 
+
+#### MaxNet package
+This runs fully in R; there's no need for Java. I also tried the dismo package but the java integration was a pain. 
+```{r}
+install.packages("maxnet")
+library(maxnet)
+
+#prep
+env.vars <- train_data_scaled[,-1]
+resp.var <-train_data_scaled$presbg
+
+#model
+set.seed(123)
+maxnet1 <- maxnet::maxnet(p=resp.var, data = env.vars, f=maxnet.formula(resp.var, env.vars))
+plot(maxnet1)
+
+
+#evaluate model
+maxnet.probs <- predict(maxnet1, env.vars, type = "cloglog")
+plot(maxnet.probs)
+
+# ROC curve and AUC
+maxnet.probs <- c(maxnet.probs)
+roc.maxnet <- roc(resp.var, maxnet.probs)
+plot(roc.maxnet, main = paste("ROC Curve - AUC:", round(auc(roc.maxnet), 3)))
+auc(roc.maxnet) #area under the curve is 0.9793
+
+
+#predict to rasters
+# Define a custom prediction wrapper for maxnet
+predict_maxnet <- function(model, data) {
+  # predict expects a data.frame
+  as.numeric(predict(model, newdata = as.data.frame(data), type = "cloglog"))
+}
+
+# Now safely predict
+maxnet1.pred <- predict(scaled_rasts, maxnet1, clamp=T, type=c("exponential"), na.rm=TRUE)
+maxnet2.pred.map <- predict(scaled_rasts, maxnet1, clamp=T, type=c("cloglog"), na.rm=TRUE)
+
+plot(maxnet2.pred)
+maxnet2.pred$lyr1
+
+```
+This breaks R every time I try to use it. DON'T BOTHER WITH THIS. 
+
+
+#### enmSdmX 
+Alternatively, this package has a maxnet integration that might work without Java...I could try that if I wanted to, but maybe I'll just get the analyses done and figures up for now. 
+
+
+```{r}
+set.seed(123)
+cores <- 2
+
+#subdf <- train_data_scaled[1:1000,]
+max1 <- enmSdmX::trainMaxNet(
+  data = train_data_scaled, 
+  resp = "presbg",
+  preds = predsHost,
+  regMult = 5, 
+  jackknife = TRUE,
+  verbose = TRUE,
+  out = c("models", "tuning"), #with the hash, it returns default of best model (based on AICc)
+  cores = cores
+  )
+
+coefs <- max1$models[[1]]$betas
+abs_coefs <- abs(coefs)
+var_contrib <- 100 * abs_coefs / sum(abs_coefs) #relative variable contribution for model with full dataset
+
+# View results
+round(var_contrib, 2)
+
+#leave out human impact variables
+max2 <- enmSdmX::trainMaxNet(
+  data = train_data_scaled, 
+  resp = "presbg",
+  preds = predsHost.wc,
+  regMult = 5, 
+  jackknife = TRUE,
+  verbose = TRUE,
+  #out = c("models", "tuning"), #with the hash, it returns default of best model (based on AICc)
+  cores = cores
+  )
+
+#Explore the maxent variables
+summary(max1$varmax) 
+max1$betas
+min(max1$tuning$AICc) #2159.634
+max1$model$importance
+
+
+
+
+# maxent model comparison of training and testing data
+max.predict <- enmSdmX::predictEnmSdm(model = max1, newdata = testDF[,predsHost],
+                                         na.rm = TRUE)
+
+roc.max <- roc(response=testDF$presbg, predictor=max.predict)
+plot(roc.max)
+auc(roc.max) #0.9655 so this is pretty good. Now it's 0.8763. now 0.9515
+#0.9464 with 50 km buffer 
+
+
+#create prediction and map it
+max.predict.map <- enmSdmX::predictEnmSdm(model = max1$models[[1]], newdata = scaled_rasts)
+plot(max.predict.map)
+
+# Map GLM prediction
+terra::plot(max.predict.map,
+            main = "Basic Maxnet model prediction")
+terra::points(occs_vect, pch = 16)
+
+
+```
+# Mapping 
+```{r}
+#color palette 
+#pal <- cividis(100)
+pal <- wes_palette("Zissou1", n=100, type="continuous")
+#pal <- colorRampPalette(brewer.pal(11, "PRGn"))
+
+maps <- c(glm.predict.map, brt.predict.map, max.predict.map)
+
+names(maps) <- c('GLM', 'BRT', 'MaxNet')
+fun <- function() plot(occs_vect, col='black', pch=16, cex=0, add=TRUE)
+plot(maps, col=pal, fun = fun, nc = 4)
+```
+## Consensus map
+Build a consensus map with the three models
+
+```{r}
+consensus.map <- c(glm.predict.map, brt.predict.map, max.predict.map)
+consensus.map <- mean(consensus.map)
+
+plot(consensus.map, main = "Consensus Prediction Map", col = pal)
+```
+### GGPLOT version
+To match the local scale, add a compass rose, etc. make it a ggplot object and alter aesthetics 
+
+```{r}
+# Make sure sf objects are ready
+ny_outline <- st_as_sf(ny.sf)
+tumv_points <- st_as_sf(tumv.nys.sf)
+
+tumv <- tumv.nys.sf %>%
+  mutate(color = ifelse(tumv.binary == 1, "black", "white"))
+
+#PLOT
+glmMap1b <- ggplot() +
+  geom_raster(data = r_df, aes(x = x, y = y, fill = prediction)) +
+  
+  scale_fill_gradientn(colors = pal) +
+  
+  geom_sf(data = ny.sf, fill = NA, color = "black", size = 0.8) +
+  
+  geom_sf(data = tumv, aes(color = color), size = 2) +
+  scale_color_identity() +
+
+   coord_sf() +
+  annotation_north_arrow(
+    location = "tr",  # top right
+    which_north = "true",
+    pad_x = unit(0.5, "cm"),
+    pad_y = unit(0.5, "cm"),
+    style = north_arrow_fancy_orienteering
+  ) +
+  theme_minimal() +
+  labs(title = "Predicted GLM Surface with TUMV Presence/Absence") +
+  theme(legend.position = "right")
+
+
+#save the plot
+ggsave("/Users/elizabethlombardi/Dropbox (Old)/Research/Human Preferences Paper (Hesperis)/Hesperis TuMV SDM project/glmMap1b_scaled_withWintTemp.png", width = 8, height = 6, dpi = 300)
+```
+
+
+##Save maps
+Create map objects to save 
+```{r}
+#panel plot
+library(patchwork)
+
+
+```
+
+# Binary prediction maps
+Create thresholds
+
+```{r}
+model_output <- trainRF(
+  data = trainDF,
+  resp = ,
+  preds = predsHost,
+  resp.xy = coordinates(species_data),
+  resp.name = "MySpecies"
+)
+
+
+predictions <- predictEnmSdm(
+  model = model_output,
+  new.env = env_stack
+)
+
+threshold <- evalThreshold(
+  pres = predictions[species_data$presence == 1],
+  contrast = predictions[species_data$presence == 0],
+  at = "msss"
+)
+
+binary_map <- predictions >= threshold
+plot(binary_map, main = "Presence/Absence Map")
+
+
+  data = trainDF, 
+  resp = "presbg",
+  preds = predsHost,
+  regMult = 5, 
+  jackknife = TRUE,
+  verbose = TRUE,
+  #out = c("models",
+  
+```
+
+# AUC for models
+```{r}
+auc(roc.glm) #0.946
+auc(roc.brt) #0.9685
+auc(roc.max) #0.9655
+```
+
+
+
+# Write prediction rasters
+Fill this in with the model prediction rasters and save them to local computer
+```{r}
+output_dir <- "/Users/elizabethlombardi/Dropbox (Old)/Research/Human Preferences Paper (Hesperis)/Hesperis TuMV SDM project/Rasters/Model Prediction Rasters/"
+
+# List of rasters to save
+rastList.modPredict <- list(
+  "glmpredict" = glm.predict.map,
+  "brtpredict" = brt.predict.map, 
+  "maxnet2" = max.predict.map
+)
+
+for (i in names(rastList.modPredict)) {
+  writeRaster(
+    rastList.modPredict[[i]], 
+    filename = file.path(output_dir, paste0(i, ".tif")),
+    overwrite = TRUE
+  )
+}
+
+#just check
+raster.files <- list.files(path = "/Users/elizabethlombardi/Dropbox (Old)/Research/Human Preferences Paper (Hesperis)/Hesperis TuMV SDM project/Rasters/Model Prediction Rasters/", pattern = "\\.tif$", full.names = TRUE)
+rastStack <- rast(raster.files)
+
+
+###RELOADING RASTERS
+#If they don't have the same number of dimensions when uploading from local computer
+rasters <- lapply(raster.files, rast) #read them individually
+
+ref <- rasters[[1]] #bioclim rasters chosen?
+
+# Resample all others to match the reference
+rasters_aligned <- lapply(rasters, function(r) {
+  resample(r, ref, method = "bilinear")  # use "near" for categorical data
+})
+
+rastStack <- rast(rasters_aligned) # will need to rename; code above around line 100
+
+```
+
+
+
+
+
+
+

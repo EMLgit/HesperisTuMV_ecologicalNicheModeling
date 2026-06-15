@@ -1,0 +1,132 @@
+---
+title: "HespTuMV_modelNYSfull"
+author: "emlombardi"
+date: "2025-06-16"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+# Introduction
+This script takes the raster stack generated and cleaned in Rmd file `HespTuMV_modelNAfull` and clips it to New York State. Then I run spatial models using background data (same as other script, clipped to NYS), presence and absence data for TuMV in H. matronalis population surveys across New York habitats. 
+
+# Libraries and prep
+```{r}
+# Libraries & Prep
+```{r libraries}
+library(ggplot2)
+library(wesanderson)
+library(RColorBrewer)
+library(dplyr)
+library(terra)
+library(sf)
+library(raster)
+library(geodata)
+library(enmSdmX)
+library(AOI)
+library(mapview)
+library(brglm2)
+library(rnaturalearth)
+library(rnaturalearthdata)
+library(rgbif)
+library(rJava)
+library(pROC)
+
+#set wd
+setwd("/Users/elizabethlombardi/Dropbox (Old)/Research/Human Preferences Paper (Hesperis)/Hesperis TuMV SDM project")
+
+#set AOI polygons
+#define the Areas Of Interest 
+ny = aoi_get(state = "NY")
+ny.sf = st_as_sf(ny, crs = 4326)
+```
+
+
+## Read Rasters
+You might already have them loaded, but if not, compile the full version (North America) from here, and clip. 
+
+```{r}
+#Read
+raster.files <- list.files(path = "/Users/elizabethlombardi/Dropbox (Old)/Research/Human Preferences Paper (Hesperis)/Hesperis TuMV SDM project/Rasters/Input Rasters/", pattern = "\\.tif$", full.names = TRUE)
+
+rasters <- lapply(raster.files, rast) #read them individually
+
+ref <- rasters[[1]] #bioclim rasters chosen as the reference raster to which I will align other rasters
+
+# Resample all others to match the reference
+rasters_aligned <- lapply(rasters, function(r) {
+  resample(r, ref, method = "bilinear")  # use "near" for categorical data
+})
+
+rastStack <- rast(rasters_aligned) 
+names(rastStack) #later, the model function needs columns to be free of special characters
+
+#rename the rasters
+names(rastStack) <- gsub("[^a-zA-Z0-9]", "", names(rastStack))
+names(rastStack)[1:19] <- paste0("bio", 1:19)
+names(rastStack)[21] <- "footprint"
+names(rastStack)[22] <- "humanpop"
+names(rastStack) #good
+
+```
+
+## Read occurrence data
+Load the population surveys from ELISA/grad school, then background data from the other script (clip to NYS)
+
+```{r}
+#################### NYS surveys
+#load NYS survey data of TuMV in hesperis populations
+#all data (individual samples from 2016)
+tumv.nys <- read.csv("~/Dropbox (Old)/Research/Hesperis/April 2021 ELISA/inferred.tumv.AllYears.binary.csv")
+tumv.nys.sf <- st_as_sf(tumv.nys, coords = c("long", "lat"), crs = 4326)
+
+#concatenated by population
+popn.tumv.nys <- read.csv("~/Dropbox (Old)/Research/Hesperis/April 2021 ELISA/popns.AllYears.binary.csv")
+popn.nys.sf <- st_as_sf(popn.tumv.nys, coords = c("long", "lat"), crs = 4326)
+
+###################### BACKGROUND
+#load cleaned background locations (pseudo absence) from other script
+bg_pnts_buff <- read.csv("~/Dropbox (Old)/Research/Human Preferences Paper (Hesperis)/Hesperis TuMV SDM project/host_backgroundpnts_hostBuffered.csv")
+
+bg_pnts_buff_nys <- bg_pnts_buff %>%
+  st_as_sf(coords=c("decimalLongitude", "decimalLatitude"), crs=4326) %>%
+  st_filter(ny.sf, .predicate = st_within)
+
+#grab environmental data for background locations
+bg_clim_nys <- terra::extract(rastStack, bg_pnts_buff_nys, ID=FALSE) #this is the host-weighted background bioclim df
+dim(bg_clim_nys) #163 sites
+bg_clim_nys <- na.omit(bg_clim_nys) #158 sites
+
+head(bg_clim_nys)
+```
+### create occurrence, bg and env dataframe
+Wait I actually don't want to do this. I have true absence locations in the dataset. Not sure a background layer is helpful at all. Mabye just figure out what the environmental correlations are and build models that way?
+```{r}
+presbg <- c(rep(1, nrow(tumv.nys.sf)), 
+             rep(0, nrow(bg_clim_nys)))
+```
+
+### predictor correlation
+```{r}
+library(corrplot)
+env.mat <- cor(bg_clim_nys, method="pearson") #pearson correlation computation
+print(env.mat)
+corrplot(env.mat, method="color", type="lower", )
+
+library(caret)
+high_corr <- findCorrelation(env.mat, cutoff = 0.7) #identify highly correlated variables
+nysStack <- rastStack[[-high_corr]] #removes, but perhaps not the 'right' variables
+names(nysStack)
+
+library(caret)
+control <- rfeControl(functions = rfFuncs, method = "cv", number = 5)
+results <- rfe(x = nysStack, y = response, sizes = c(1:10), rfeControl = control)
+
+```
+
+# Clip data and rasters to NYS
+This is the step that clips background data and the 
+
+
+
