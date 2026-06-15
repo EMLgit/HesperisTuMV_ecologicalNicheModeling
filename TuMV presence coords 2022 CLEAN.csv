@@ -1,0 +1,361 @@
+city,region,latitude,longitude,accuracy.meters,year,flag,inat.person,notes,hyperlink,ID
+vancouver,BC,49.015196,-122.785947,NA,2022,,foooux,,https://www.inaturalist.org/observations/118474484,118474484
+madison,wisconsin,43.112593,-88.917442,NA,2022,,sjnothhazen,,https://www.inaturalist.org/observations/147828790,147828790
+kent county,michigan,43.089456,-85.691238,NA,2022,,allissac,,https://www.inaturalist.org/observations/123164856,123164856
+swanton,ohio,41.581783,-83.860781,NA,2022,,camp_,,https://www.inaturalist.org/observations/119083692,119083692
+ann arbor,michigan,42.282833,-83.717895,NA,2022,,patriciatorrespineda,,https://www.inaturalist.org/observations/97117157,97117157
+union township,ohio,40.4604,-82.203453,NA,2022,,ryan_denee,,https://www.inaturalist.org/observations/122558408,122558408
+zionville,north carolina,36.377409,-81.797263,NA,2022,,okgray,,https://www.inaturalist.org/observations/116686953,116686953
+cleveland,ohio,41.316781,-81.604214,NA,2022,,briefkase,,https://www.inaturalist.org/observations/119469599,119469599
+oxford,ontario,42.857778,-80.731944,NA,2022,,callmedani,,https://www.inaturalist.org/observations/120257935,120257935
+elmira,ontario,43.624321,-80.561705,NA,2022,,wuwt2018,,https://www.inaturalist.org/observations/121646929,121646929
+hamilton,ontario,43.385387,-80.368185,NA,2022,,sarah-pit,,https://www.inaturalist.org/observations/118773056,118773056
+brampton,ontario,43.769614,-79.739114,NA,2022,,jonathan1384,,https://www.inaturalist.org/observations/119258402,119258402
+innisfil,ontario,44.274457,-79.546372,NA,2022,,malg,,https://www.inaturalist.org/observations/119602486,119602486
+markham,ontario,43.83587,-79.400421,NA,2022,,tttly422,,https://www.inaturalist.org/observations/123570391,123570391
+fenwick,ontario,42.911667,-79.296389,NA,2022,,nikolett6ttn,,https://www.inaturalist.org/observations/118438610,118438610
+oshawa,ontario,43.941804,-78.869636,NA,2022,,peterkikic,,https://www.inaturalist.org/observations/118100137,118100137
+oshawa,ontario,43.941804,-78.869636,NA,2022,,peterkikic,,https://www.inaturalist.org/observations/118100137,118100137
+paw paw,west virginia,39.538087,-78.454966,NA,2022,,osmunda,,https://www.inaturalist.org/observations/116221864,116221864
+granger,new york,42.505923,-78.04632,NA,2022,possible coinfection,charleshappell,,https://www.inaturalist.org/observations/120033899,120033899
+state college,pennsylvania,40.788387,-77.850128,NA,2022,,leilton,,https://www.inaturalist.org/observations/119689239,119689239
+state college,pennsylvania,40.788387,-77.850128,NA,2022,,leilton,,https://www.inaturalist.org/observations/119689239,119689239
+sharpsburg,maryland,39.49802,-77.837388,NA,2022,possible coinfection,chipp,,https://www.inaturalist.org/observations/121467613,121467613
+frederick ,maryland,39.36787,-77.172645,NA,2022,leaf sympts,apgarm,,https://www.inaturalist.org/observations/119172753,119172753
+lodi,new york,42.5519,-76.881089,NA,2022,,mccannjw,,https://www.inaturalist.org/observations/118871395,118871395
+lodi,new york,42.5519,-76.881089,NA,2022,,mccanjw,,https://www.inaturalist.org/observations/118871395,118871395
+ithaca,new york,42.438074,-76.489117,NA,2022,,giovvio,,https://www.inaturalist.org/observations/117950116,117950116
+ithaca,new york,42.438074,-76.489117,NA,2022,,giovvio,,https://www.inaturalist.org/observations/117950116,117950116
+ithaca,new york,42.451907,-76.451682,NA,2022,,savannahm1,,https://www.inaturalist.org/observations/127463026,127463026
+ithaca,new york,42.451907,-76.451682,NA,2022,,savannahm1,,https://www.inaturalist.org/observations/127463026,127463026
+lysander,new york,43.18365,-76.415903,NA,2022,,amanda1420,,https://www.inaturalist.org/observations/119313167,119313167
+lysander,new york,43.18365,-76.415903,NA,2022,,amanda1420,,https://www.inaturalist.org/observations/119313167,119313167
+philedelphia,pennsylvania,40.280462,-75.948743,NA,2022,,geisha666,,https://www.inaturalist.org/observations/117946486,117946486
+mohnton,pennsylvania,40.280462,-75.948743,NA,2022,,geisha666,,https://www.inaturalist.org/observations/117946486,117946486
+ottawa,ontario,45.515498,-75.442342,NA,2022,,sorensenje,,https://www.inaturalist.org/observations/119272907,119272907
+bonshaw,prince edward island,46.196996,-63.352137,NA,2022,,alanmacleod,,https://www.inaturalist.org/observations/122462784,122462784
+glenchristie,ontario,43.488062,-80.269573,274700,2022,,rookeac,coordinate precision low; obscured by user,https://www.inaturalist.org/observations/120207271,120207271
+hidden springs,idaho,43.788975,-116.224438,274400,2022,,shinybub,coordinate precision low; obscured by user,https://www.inaturalist.org/observations/118312756,118312756
+toronto,ontario,43.721034,-79.379055,39200,2022,,alrt,checked,https://www.inaturalist.org/observations/118814434,118814434
+colden,new york,42.720269,-78.67671,27600,2022,,samuel_geo,coordinate precision low; obscured by user,https://www.inaturalist.org/observations/118819020,118819020
+hamlin,new york,43.37866,-77.833357,27000,2022,,dcenterbar,coordinate precision low; obscured by user,https://www.inaturalist.org/observations/119264178,119264178
+white rock,BC,49.022631,-122.786738,999,2022,,teambutterflies,revised coord precision based on written description,https://www.inaturalist.org/observations/118709263,118709263
+silver star foothills,BC,50.318077,-119.244802,1890,2022,,megsolson,indoor photos; remove?,https://www.inaturalist.org/observations/121088542,121088542
+great cacapon,west virginia,39.620092,-78.292509,1680,2022,,tinalyna,checked,https://www.inaturalist.org/observations/122963191,122963191
+shickshinny,pennsylvania,41.079575,-76.133772,1290,2022,,mhess30,checked,https://www.inaturalist.org/observations/119809948,119809948
+cuyahoya,ohio,41.281005,-81.567812,10270,2022,,casey489,checked,https://www.inaturalist.org/observations/140976655,140976655
+fish creek,wisconsin,45.128975,-87.250488,6000,2022,,aaroneisler,checked,https://www.inaturalist.org/observations/121466055,121466055
+toronto,ontario,43.721034,-79.379055,3920,2022,,alrt,checked,https://www.inaturalist.org/observations/118814434,118814434
+bland,virginia,37.139259,-80.988663,3500,2022,,luv2hikva,checked,https://www.inaturalist.org/observations/116888663,116888663
+bland,virginia,37.19776,-81.20795,3380,2022,,emily2598,checked,https://www.inaturalist.org/observations/117378233,117378233
+fort drum,new york,44.04726,-75.752228,3100,2022,,michelepriest,checked,https://www.inaturalist.org/observations/121905591,121905591
+cascade locks,oregon,45.613606,-122.014864,2900,2022,,xulua,checked,https://www.inaturalist.org/observations/122536154,122536154
+springdale,ohio,39.236699,-84.526375,2800,2022,,whateverwatcher,coordinate precision low; obscured by user,https://www.inaturalist.org/observations/116794470,116794470
+bradner,ohio,41.340823,-83.372428,2800,2022,marginal sympts,sunflower1953,checked,https://www.inaturalist.org/observations/117488462,117488462
+gallatin county,montana,45.61474,-111.161395,2700,2022,,afidnotorchids,coordinate precision low; obscured by user,https://www.inaturalist.org/observations/122526470,122526470
+peel,ontario,43.547837,-79.672267,2700,2022,,wild_explorer,coordinate precision low; obscured by user,https://www.inaturalist.org/observations/120599664,120599664
+lincoln county,maine,43.898208,-69.732934,2700,2022,,michaela_maple,different color break,https://www.inaturalist.org/observations/123615331,123615331
+lemont,pennsylvania,40.810616,-77.818334,2260,2022,,curiousmisscritter,checked,https://www.inaturalist.org/observations/118700158,118700158
+heath,ohio,39.982162,-82.436219,999,2022,,miss_stephanie,revised coord precision based on written description,https://www.inaturalist.org/observations/117797687,117797687
+toronto,ontario,43.818027,-79.173315,1380,2022,,brent_isojima,checked,https://www.inaturalist.org/observations/122514265,122514265
+richmand,indiana,39.831648,-84.918388,977,2022,,casbowman,,https://www.inaturalist.org/observations/116197032,116197032
+mecklenburg,new york,42.461408,-76.70485,900,2022,,star_jasmine,,https://www.inaturalist.org/observations/118262824,118262824
+montgomory ,pennsylvania,40.26788,-75.457564,758,2022,,linkmdavis,,https://www.inaturalist.org/observations/119646471,119646471
+hatfield,pennsylvania,40.26788,-75.457564,758,2022,,linkmdavis,,https://www.inaturalist.org/observations/119646471,119646471
+miami township,ohio,39.816191,-83.888215,699,2022,,luckiirue,,https://www.inaturalist.org/observations/119370183,119370183
+miami township,ohio,39.816191,-83.888215,699,2022,,luckiirue,,https://www.inaturalist.org/observations/119370183,119370183
+petoskey,michigan,45.366165,-84.962886,671,2022,,friendofnature2,,https://www.inaturalist.org/observations/121120380,121120380
+monaca,pennsylvania,40.693787,-80.294175,671,2022,,toucan55,,https://www.inaturalist.org/observations/116622203,116622203
+bridgewater,pennsylvania,40.693787,-80.294175,671,2022,,toucan55,,https://www.inaturalist.org/observations/116622203,116622203
+lake ariel,pennsylvania,41.437069,-75.37403,514,2022,remove? Cut flowers,mrsmcclellan,,https://www.inaturalist.org/observations/119270738,119270738
+mecklenburg,new york,42.461408,-76.70485,500,2022,,star_jasmine,,https://www.inaturalist.org/observations/118262824,118262824
+menomeonee falls,wisconsin,43.158006,-88.173985,489,2022,,chdphoto,,https://www.inaturalist.org/observations/118588825,118588825
+sussex,wisconsin,43.158006,-88.173985,489,2022,,chdphoto,,https://www.inaturalist.org/observations/118588825,118588825
+campton hills,illinois,41.949387,-88.401692,478,2022,,jenniferannifer,,https://www.inaturalist.org/observations/118436928,118436928
+campton hills,illinois,41.949387,-88.401692,478,2022,,jenniferannifer,,https://www.inaturalist.org/observations/118436928,118436928
+easton,pennsylvania,40.667887,-75.185408,357,2022,,ken_davis,,https://www.inaturalist.org/observations/116762047,116762047
+easton,pennsylvania,40.667887,-75.185408,357,2022,,ken_davis,,https://www.inaturalist.org/observations/116762047,116762047
+lahaska,pennsylvania,40.354327,-74.988505,308,2022,,soilsflutterby,,https://www.inaturalist.org/observations/119635005,119635005
+new hope,pennsylvania,40.354327,-74.988505,308,2022,,soilsflutterby,,https://www.inaturalist.org/observations/119635005,119635005
+rothrock state forest,pennsylvania,40.71691,-77.894124,302,2022,,kyleamattis,,https://www.inaturalist.org/observations/118852230,118852230
+yellow springs,ohio,39.803909,-83.87718,284,2022,,kqmazur,,https://www.inaturalist.org/observations/117944917,117944917
+yellow springs,ohio,39.803909,-83.87718,284,2022,,kqmazur,,https://www.inaturalist.org/observations/117944917,117944917
+milford,pennsylvania,41.310421,-74.796784,255,2022,,kmole,,https://www.inaturalist.org/observations/118422880,118422880
+delaware water gap,pennsylvania,41.310421,-74.796784,255,2022,,kmole,,https://www.inaturalist.org/observations/118422880,118422880
+ann arbor,michigan,42.304946,-83.742778,249,2022,,julieboolie,,https://www.inaturalist.org/observations/118710921,118710921
+ann arbor,michigan,42.304946,-83.742778,249,2022,,julieboolie,,https://www.inaturalist.org/observations/118710921,118710921
+victor,new york,43.018666,-77.280412,237,2022,,erin_lord_astles,,https://www.inaturalist.org/observations/118729704,118729704
+victor,new york,43.018666,-77.280412,237,2022,,erin_lord_astles,,https://www.inaturalist.org/observations/118729704,118729704
+monongahela,pennsylvania,40.200833,-79.977389,222,2022,,mentiant,,https://www.inaturalist.org/observations/118641228,118641228
+monongahela,pennsylvania,40.200833,-79.977389,222,2022,,mentiant,,https://www.inaturalist.org/observations/118641228,118641228
+cascade locks,oregon,45.626225,-121.952905,212,2022,,dysnomia,,https://www.inaturalist.org/observations/123087472,123087472
+beaver county,pennsylvania,40.63453,-80.180423,189,2022,,sheila257,,https://www.inaturalist.org/observations/119101709,119101709
+mccandless,pennsylvania,40.63453,-80.180423,189,2022,,sheila257,,https://www.inaturalist.org/observations/119101709,119101709
+york,ontario,44.321956,-79.325432,189,2022,,csibbald,,https://www.inaturalist.org/observations/120061304,120061304
+allegheny county,pennsylvania,40.436696,-79.944755,188,2022,,woodlandpaths,,https://www.inaturalist.org/observations/118999909,118999909
+pittsburg,pennsylvania,40.441994,-79.927131,188,2022,,woodlandpaths,,https://www.inaturalist.org/observations/118999923,118999923
+wellington,ontario,43.612937,-80.147753,187,2022,,mary_ann_meyer,,https://www.inaturalist.org/observations/119362158,119362158
+rockwood,ontario,43.612937,-80.147753,187,2022,,mary_ann_meyer,,https://www.inaturalist.org/observations/119362158,119362158
+williamsport,maryland,39.576062,-77.754102,163,2022,,kmrogers,,https://www.inaturalist.org/observations/117127660,117127660
+st. james,maryland,39.576062,-77.754102,163,2022,,kmrogers,,https://www.inaturalist.org/observations/117127660,117127660
+canton,ohio,40.829211,-81.310469,158,2022,,benniesaylor,,https://www.inaturalist.org/observations/120355829,120355829
+brandon,iowa,42.299989,-92.056892,157,2022,possible coinfection,criddibean,,https://www.inaturalist.org/observations/132771037,132771037
+brandon,iowa,42.299989,-92.056892,157,2022,,criddibean,,https://www.inaturalist.org/observations/132771037,132771037
+toronto,ontario,43.684432,-79.365138,157,2022,,michelle_schwartz,,https://www.inaturalist.org/observations/120378408,120378408
+vancouver,BC,49.218704,-122.9015,133,2022,,saintaardvark,,https://www.inaturalist.org/observations/119124793,119124793
+new westminster,BC,49.218704,-122.9015,133,2022,,saintaardvark,,https://www.inaturalist.org/observations/119124793,119124793
+york,ontario,44.031449,-79.533454,128,2022,,littlestbiscuit,,https://www.inaturalist.org/observations/120900332,120900332
+midland,maryland,39.672398,-78.899022,122,2022,,fred278,,https://www.inaturalist.org/observations/124258096,124258096
+shrewsbury,ontario,42.314352,-81.847438,118,2022,,cdnbiboy,,https://www.inaturalist.org/observations/118111874,118111874
+chatham,ontario,42.314352,-81.847438,118,2022,,cdnbiboy,,https://www.inaturalist.org/observations/118111874,118111874
+oakville,ontario,43.414451,-79.761624,110,2022,,naturecraig,,https://www.inaturalist.org/observations/123246656,123246656
+frostburg,maryland,39.662258,-78.925319,110,2022,,slachmuth,,https://www.inaturalist.org/observations/119132994,119132994
+frostburg,maryland,39.662258,-78.925319,110,2022,,slachmuth,,https://www.inaturalist.org/observations/119132994,119132994
+iowa city,iowa,41.655516,-91.476447,109,2022,y,colececil,,https://www.inaturalist.org/observations/119548235,119548235
+iowa city,iowa,41.655516,-91.476447,109,2022,yes,colececil,,https://www.inaturalist.org/observations/119548235,119548235
+portage,michigan,42.183502,-85.594649,102,2022,,arazalindr,,https://www.inaturalist.org/observations/121087334,121087334
+portage,michigan,42.183502,-85.594649,102,2022,,arazalindr,,https://www.inaturalist.org/observations/121087334,121087334
+victoria,BC,48.44321,-123.354844,100,2022,,eloraa,,https://www.inaturalist.org/observations/117087118,117087118
+victoria,BC,48.44321,-123.354844,100,2022,,eloraa,,https://www.inaturalist.org/observations/117087118,117087118
+toronto,ontario,43.807059,-79.137773,100,2022,,william720,,https://www.inaturalist.org/observations/121245288,121245288
+cumberland,maryland,39.655914,-78.768781,98,2022,,cosmognat,,https://www.inaturalist.org/observations/117926843,117926843
+wayland,new york,42.57159,-77.5933,98,2022,,bored_hiker,,https://www.inaturalist.org/observations/118287229,118287229
+bryn athyn,pennsylvania,40.134886,-75.072807,92,2022,,agent511,,https://www.inaturalist.org/observations/114006805,114006805
+bryn athyn,pennsylvania,40.134886,-75.072807,92,2022,,agent511,,https://www.inaturalist.org/observations/114006805,114006805
+marcellus,new york,42.965107,-76.344531,82,2022,,lprudent,,https://www.inaturalist.org/observations/118036785,118036785
+marcellus,new york,42.965107,-76.344531,82,2022,,lprudent,,https://www.inaturalist.org/observations/118036785,118036785
+ajax,ontario,43.887901,-79.015434,81,2022,,jiangwangwawa,,https://www.inaturalist.org/observations/111563049,111563049
+mechanicsville,pennsylvania,40.215446,-77.028244,78,2022,,lovecamp,,https://www.inaturalist.org/observations/116897555,116897555
+mechanicsburg,pennsylvania,40.215446,-77.028244,78,2022,,lovecamp,,https://www.inaturalist.org/observations/116897555,116897555
+annan,ontario,44.626804,-80.869613,75,2022,,jamesmitchell4,,https://www.inaturalist.org/observations/120972469,120972469
+manchester,vermont,43.18515,-73.050278,72,2022,y,skchiodi,,https://www.inaturalist.org/observations/119524260,119524260
+pittsburg,pennsylvania,40.482616,-80.017838,65,2022,,grizzop,,https://www.inaturalist.org/observations/118207561,118207561
+pittsburg,pennsylvania,40.482616,-80.017838,65,2022,,grizzop,,https://www.inaturalist.org/observations/118207561,118207561
+altamont,new york,42.714347,-74.047724,65,2022,,dominid,,https://www.inaturalist.org/observations/122646525,122646525
+toronto,ontario,43.701433,-79.318206,61,2022,,handy2,,https://www.inaturalist.org/observations/119928120,119928120
+toronto,ontario,43.701433,-79.318206,61,2022,,handy2,,https://www.inaturalist.org/observations/119928120,119928120
+pittsburg,pennsylvania,40.520047,-79.921625,54,2022,,nickfox,,https://www.inaturalist.org/observations/116749172,116749172
+pittsburg,pennsylvania,40.520047,-79.921625,54,2022,,nickfox,,https://www.inaturalist.org/observations/116749172,116749172
+xenia,ohio,39.694862,-83.936158,53,2022,,nubertx,,https://www.inaturalist.org/observations/118912038,118912038
+xenia,ohio,39.694862,-83.936158,53,2022,,nubertx,,https://www.inaturalist.org/observations/118912038,118912038
+pickering,ontario,43.822738,-79.08853,53,2022,,weaselgirl,,https://www.inaturalist.org/observations/118930253,118930253
+marcellus,new york,42.992912,-76.339972,42,2022,,calamacow75,,https://www.inaturalist.org/observations/123268351,123268351
+kingston,ontario,44.245011,-76.525695,41,2022,,jocelyn-willis-papi,,https://www.inaturalist.org/observations/124760514,124760514
+buffalo,new york,42.853991,-78.752286,38,2022,,joedziewa,,https://www.inaturalist.org/observations/120466433,120466433
+saugeen shores,ontario,44.439621,-81.401338,37,2022,,naomibeau,,https://www.inaturalist.org/observations/121251042,121251042
+toronto,ontario,43.704778,-79.384413,37,2022,,beckyraboy,,https://www.inaturalist.org/observations/119713782,119713782
+toronto,ontario,43.726736,-79.368209,37,2022,,vivianratcliffe,,https://www.inaturalist.org/observations/123727677,123727677
+purcellville,virginia,39.0697,-77.740195,36,2022,,lauren_sullivan,,https://www.inaturalist.org/observations/116279438,116279438
+purcellville,virginia,39.0697,-77.740195,36,2022,,lauren_sullivan,,https://www.inaturalist.org/observations/116279438,116279438
+rochester,minnesota,44.078924,-92.532877,35,2022,,vannavanessapasse,,https://www.inaturalist.org/observations/119785528,119785528
+rochester,minnesota,44.078924,-92.532877,35,2022,,vannavanessapasse,,https://www.inaturalist.org/observations/119785528,119785528
+irwin,pennsylvania,40.324886,-79.725591,35,2022,,kourtney21,,https://www.inaturalist.org/observations/118360671,118360671
+toronto,ontario,43.655648,-79.484612,35,2022,,summitmicroschool,,https://www.inaturalist.org/observations/118790515,118790515
+toronto,ontario,43.655648,-79.484612,35,2022,,summitmicroschool,,https://www.inaturalist.org/observations/118790515,118790515
+toronto,ontario,43.762527,-79.151798,35,2022,,gmack_15,,https://www.inaturalist.org/observations/122490715,122490715
+harrisburg,virginia,38.472105,-78.816581,35,2022,,jordanbennett,,https://www.inaturalist.org/observations/117525136,117525136
+phoenicia,new york,42.098339,-74.290367,35,2022,,localareamom,,https://www.inaturalist.org/observations/119149654,119149654
+ithaca,new york,42.450582,-76.476774,32,2022,,jmois,,https://www.inaturalist.org/observations/119454868,119454868
+ithaca,new york,42.450582,-76.476774,32,2022,,jmois,,https://www.inaturalist.org/observations/119454868,119454868
+richfield,ohio,41.205492,-81.586824,31,2022,,interpretivetwerp,,https://www.inaturalist.org/observations/118565448,118565448
+summit county ,ohio,41.205492,-81.586824,31,2022,,interpretivetwerp,,https://www.inaturalist.org/observations/118565448,118565448
+burlington,vermont,43.303739,-79.86093,30,2022,,animist,,https://www.inaturalist.org/observations/119886327,119886327
+clifton park,new york,42.808925,-73.795456,30,2022,,peggy36,,https://www.inaturalist.org/observations/120515225,120515225
+cumberland,maryland,39.659973,-78.789994,29,2022,,aidanrf,,https://www.inaturalist.org/observations/119247419,119247419
+greensburg,pennsylvania,40.322257,-79.485515,28,2022,,melissa577,,https://www.inaturalist.org/observations/118167918,118167918
+hempfield township,pennsylvania,40.322257,-79.485515,28,2022,,melissa577,,https://www.inaturalist.org/observations/118167918,118167918
+lexington,virginia,37.789339,-79.442269,28,2022,,carey50,,https://www.inaturalist.org/observations/116189969,116189969
+lexington,virginia,37.789339,-79.442269,28,2022,,carey50,,https://www.inaturalist.org/observations/116189969,116189969
+cumberland,maryland,39.655914,-78.768781,28,2022,,cosmognat,,https://www.inaturalist.org/observations/117926843,117926843
+salt lake city,utah,40.754962,-111.857205,27,2022,,sgrizzell,,https://www.inaturalist.org/observations/117945297,117945297
+salt lake city,utah,40.754962,-111.857205,27,2022,,sgrizzell,,https://www.inaturalist.org/observations/117945297,117945297
+dorset,vermont,43.18515,-73.050278,27,2022,,skchiodi,,https://www.inaturalist.org/observations/119524260,119524260
+duncan,BC,48.8155,-123.610234,24,2022,,dan1133,,https://www.inaturalist.org/observations/118456219,118456219
+duncan,BC,48.8155,-123.610234,24,2022,,dan1133,,https://www.inaturalist.org/observations/118456219,118456219
+victoria,BC,48.429391,-123.35275,24,2022,yes,abby-pewpew,,https://www.inaturalist.org/observations/119128156,119128156
+wheeling,west virginia,40.08423,-80.718235,24,2022,,emilyh22,,https://www.inaturalist.org/observations/118565509,118565509
+wheeling,west virginia,40.08423,-80.718235,24,2022,,emilyh22,,https://www.inaturalist.org/observations/118565509,118565509
+warrenton,virginia,38.722135,-77.816819,23,2022,,correllscience,,https://www.inaturalist.org/observations/123892362,123892362
+warrington,virginia,38.722135,-77.816819,23,2022,,correllscience,,https://www.inaturalist.org/observations/123892362,123892362
+warrenton,west virginia,38.722135,-77.816819,23,2022,,correllscience,,https://www.inaturalist.org/observations/123892362,123892362
+ithaca,new york,42.447703,-76.471191,23,2022,,elliot_meyers,,https://www.inaturalist.org/observations/118706646,118706646
+ithaca,new york,42.447703,-76.471191,23,2022,,elliot_meyers,,https://www.inaturalist.org/observations/118706646,118706646
+oxford,ohio,39.49777,-84.732613,21,2022,,botanyguy,,https://www.inaturalist.org/observations/118211003,118211003
+oxford,ohio,39.49777,-84.732613,21,2022,,botanyguy,,https://www.inaturalist.org/observations/118211003,118211003
+strathroy,ontario,42.965193,-81.61472,21,2022,,pfletcher25,,https://www.inaturalist.org/observations/119250662,119250662
+strathroy,ontario,42.965193,-81.61472,21,2022,,pfletcher25,,https://www.inaturalist.org/observations/119250662,119250662
+red hook,new york,42.027092,-73.836778,21,2022,,sarstern,,https://www.inaturalist.org/observations/118590122,118590122
+red hook,new york,42.027092,-73.836778,21,2022,,sarstern,,https://www.inaturalist.org/observations/118590122,118590122
+wilmington,new york,44.37062,-73.726295,20,2022,,nature_luver,,https://www.inaturalist.org/observations/120439406,120439406
+leechburg,pennsylvania,40.623592,-79.611825,19,2022,y,vipergirl32,,https://www.inaturalist.org/observations/119919363,119919363
+leechburg,pennsylvania,40.623592,-79.611825,19,2022,,vipergirl32,,https://www.inaturalist.org/observations/119919363,119919363
+coleridge,north carolina,35.683462,-79.611611,19,2022,,ozarkakerzfarm,,https://www.inaturalist.org/observations/119091709,119091709
+tyrone,pennsylvania,40.614192,-78.323417,19,2022,,is_sarah_reason,,https://www.inaturalist.org/observations/117793541,117793541
+tyrone,pennsylvania,40.614192,-78.323417,19,2022,,is_sarah_reason,,https://www.inaturalist.org/observations/117793541,117793541
+boston,masscheusettes,42.319142,-71.118667,18,2022,,jules81397,,https://www.inaturalist.org/observations/120195951,120195951
+ames,iowa,42.03075,-93.67585,17,2022,,pendingdysphoria,,https://www.inaturalist.org/observations/118959679,118959679
+frederickton,new brunswick,45.954658,-66.637362,17,2022,y,kitty12,,https://www.inaturalist.org/observations/119485059,119485059
+webster city,iowa,42.47745,-93.819817,16,2022,,davidoutomuro,,https://www.inaturalist.org/observations/119165308,119165308
+shrewsbury,ontario,42.265174,-81.938093,15,2022,y,susanberry,,https://www.inaturalist.org/observations/119673454,119673454
+woodstock,vermont,43.622225,-72.521703,15,2022,y,ericcleveland,leaves clear,https://www.inaturalist.org/observations/123816042,123816042
+onalaska,wisconsin,43.894643,-91.076218,14,2022,,vickisuemiller,,https://www.inaturalist.org/observations/120600889,120600889
+erie,pennsylvania,42.107436,-80.090324,14,2022,,colson21,,https://www.inaturalist.org/observations/120682365,120682365
+ithaca,new york,42.43178,-76.483528,14,2022,,afmata_2,,https://www.inaturalist.org/observations/118242469,118242469
+ithaca,new york,42.43178,-76.483528,14,2022,,afmata_2,,https://www.inaturalist.org/observations/118242469,118242469
+york,ontario,43.901055,-79.397544,13,2022,,jamesrobertson2,,https://www.inaturalist.org/observations/121442452,121442452
+richmond hill,ontario,43.901055,-79.397544,13,2022,,jamesrobertson2,,https://www.inaturalist.org/observations/121442452,121442452
+clarendon,new york,43.160837,-78.028995,12,2022,,emilystreicher,,https://www.inaturalist.org/observations/118972994,118972994
+clarendon,new york,43.160837,-78.028995,12,2022,,emilystreicher,,https://www.inaturalist.org/observations/118972994,118972994
+pittsburg,pennsylvania,40.415648,-79.974949,11,2022,y,mamaizl,,https://www.inaturalist.org/observations/119250066,119250066
+toronto,ontario,43.698611,-79.347562,11,2022,,david3865,,https://www.inaturalist.org/observations/119456042,119456042
+toronto,ontario,43.698611,-79.347562,11,2022,,david3865,,https://www.inaturalist.org/observations/119456042,119456042
+meadow valley,california,39.922592,-121.069528,10,2022,,miles32,,https://www.inaturalist.org/observations/121963449,121963449
+lafayette,indiana,40.413128,-86.884712,10,2022,,mularo1,,https://www.inaturalist.org/observations/117014184,117014184
+dumfries,ontario,43.381437,-80.357553,10,2022,,mmacmillan,,https://www.inaturalist.org/observations/118818797,118818797
+state college,pennsylvania,40.766349,-77.859811,10,2022,,islandella,,https://www.inaturalist.org/observations/121131641,121131641
+ithaca,new york,42.431946,-76.48377,10,2022,,pagophila,,https://www.inaturalist.org/observations/120378593,120378593
+wilmington,delaware,39.809157,-75.600363,10,2022,,liz_inthewoods,,https://www.inaturalist.org/observations/117472235,117472235
+bradner,ohio,41.318909,-83.421929,9,2022,,metalpetal,,https://www.inaturalist.org/observations/118177089,118177089
+bradner,ohio,41.318909,-83.421929,9,2022,,metalpetal,,https://www.inaturalist.org/observations/118177089,118177089
+mustoe,virginia,38.311725,-79.659791,9,2022,,jrsweet,,https://www.inaturalist.org/observations/118016590,118016590
+peterborough,ontario,44.3038,-78.337212,9,2022,,thomas1520,,https://www.inaturalist.org/observations/119628303,119628303
+peterborough,ontario,44.3038,-78.337212,9,2022,,thomas1520,,https://www.inaturalist.org/observations/119628303,119628303
+tioga county,pennsylvania,41.747085,-77.425151,9,2022,,kateblack8653,,https://www.inaturalist.org/observations/120256822,120256822
+ithaca,new york,42.4388,-76.40963,9,2022,,mydadguyfieri,,https://www.inaturalist.org/observations/123333717,123333717
+madison,wisconsin,43.082996,-89.381063,8,2022,,john883,,https://www.inaturalist.org/observations/119000459,119000459
+madison,wisconsin,43.082996,-89.381063,8,2022,,john883,,https://www.inaturalist.org/observations/119000459,119000459
+london,ontario,42.982189,-81.260035,8,2022,,sksakal,,https://www.inaturalist.org/observations/119141717,119141717
+toronto,ontario,43.647839,-79.521746,8,2022,,danieljunderdown,,https://www.inaturalist.org/observations/118861201,118861201
+toronto,ontario,43.647839,-79.521746,8,2022,,danieljunderdown,,https://www.inaturalist.org/observations/118861201,118861201
+toronto,ontario,43.655656,-79.432177,8,2022,,amy9,,https://www.inaturalist.org/observations/118712628,118712628
+toronto,ontario,43.655656,-79.432177,8,2022,,amy9,,https://www.inaturalist.org/observations/118712628,118712628
+boalsburg,pennsylvania,40.775097,-77.792038,8,2022,,ecrisfield,,https://www.inaturalist.org/observations/118074088,118074088
+boalsburg,pennsylvania,40.775097,-77.792038,8,2022,,ecrisfield,,https://www.inaturalist.org/observations/118074088,118074088
+tweed,ontario,44.479277,-77.303334,8,2022,,jasonjdking,,https://www.inaturalist.org/observations/119322842,119322842
+kingston,ontario,44.251594,-76.480498,8,2022,,jungmaria,,https://www.inaturalist.org/observations/118807764,118807764
+shrewsbury,massachusetts,42.296977,-71.705831,8,2022,,nellio,,https://www.inaturalist.org/observations/122813907,122813907
+amesbury,massachusetts,42.848765,-70.920183,8,2022,y,newenglandjonny,,https://www.inaturalist.org/observations/120500440,120500440
+peterborough,ontario,44.282652,-78.342771,7,2022,,rsety,,https://www.inaturalist.org/observations/119737867,119737867
+peterborough,ontario,44.282652,-78.342771,7,2022,,rsety,,https://www.inaturalist.org/observations/119737867,119737867
+hastings,ontario,44.375965,-77.452508,7,2022,,jungmaria,,https://www.inaturalist.org/observations/119134482,119134482
+centre hastings,ontario,44.375965,-77.452508,7,2022,,jungmaria,,https://www.inaturalist.org/observations/119134482,119134482
+ottowa,ontario,45.41344,-75.66745,7,2022,,juliennecote,,https://www.inaturalist.org/observations/123280842,123280842
+gatineau,ontario,45.446893,-75.651778,7,2022,,temporarium,,https://www.inaturalist.org/observations/119461751,119461751
+ottowa,ontario,45.390583,-75.637588,7,2022,,patrocle,,https://www.inaturalist.org/observations/118590119,118590119
+princeton,new jersey,40.358736,-74.669973,7,2022,,noramw,,https://www.inaturalist.org/observations/120568596,120568596
+pittston,maine,44.160728,-69.698953,7,2022,,ashleydsumner,,https://www.inaturalist.org/observations/118965634,118965634
+whitefield,maine,44.160728,-69.698953,7,2022,,ashleydsumner,,https://www.inaturalist.org/observations/118965634,118965634
+cascade locks,maryland,39.714837,-77.50937,6,2022,,poissonperdu,,https://www.inaturalist.org/observations/119210848,119210848
+cascade,maryland,39.714837,-77.50937,6,2022,,poisonperdu,,https://www.inaturalist.org/observations/119210848,119210848
+ottowa,ontario,45.34417,-75.842894,6,2022,,wilders,,https://www.inaturalist.org/observations/120329186,120329186
+ottowa,ontario,45.426405,-75.699058,6,2022,,markwhitcomb,,https://www.inaturalist.org/observations/124126770,124126770
+catskill,new york,42.202433,-73.865538,6,2022,,jsmallphl,,https://www.inaturalist.org/observations/119441498,119441498
+catskill,new york,42.202433,-73.865538,6,2022,,jsmallphl,,https://www.inaturalist.org/observations/119441498,119441498
+vancouver,BC,49.320737,-123.045708,5,2022,,sophiakostiuk,,https://www.inaturalist.org/observations/121891765,121891765
+decorah,iowa,43.296742,-91.807578,5,2022,,plott,,https://www.inaturalist.org/observations/119939238,119939238
+decorah,iowa,43.296742,-91.807578,5,2022,,plott,,https://www.inaturalist.org/observations/119939238,119939238
+belgium,wisconsin,43.492528,-87.792245,5,2022,,laurennicolep,,https://www.inaturalist.org/observations/122607072,122607072
+michigan city,indiana,41.688103,-86.882545,5,2022,,adormire,,https://www.inaturalist.org/observations/118578556,118578556
+bear river valley recreation area,michigan,45.366202,-84.96339,5,2022,y,friendofnature2,,https://www.inaturalist.org/observations/122207016,122207016
+ann arbor,michigan,42.277113,-83.76567,5,2022,,kdnbr,,https://www.inaturalist.org/observations/120726218,120726218
+ann arbor,michigan,42.287652,-83.720146,5,2022,,mel_gunal,,https://www.inaturalist.org/observations/119787587,119787587
+richmond,michigan,42.900993,-82.766815,5,2022,y,bugwaste,,https://www.inaturalist.org/observations/119333740,119333740
+allegheny county,pennsylvania,40.570035,-80.137756,5,2022,,karenbehboudi,,https://www.inaturalist.org/observations/119324001,119324001
+mccandless,pennsylvania,40.570035,-80.137756,5,2022,,karenbehboudi,,https://www.inaturalist.org/observations/119324001,119324001
+carroll township,pennsylvania,40.200413,-79.977169,5,2022,,haley385,,https://www.inaturalist.org/observations/118641608,118641608
+carroll township,pennsylvania,40.200413,-79.977169,5,2022,,haley385,,https://www.inaturalist.org/observations/118641608,118641608
+pittsburg,pennsylvania,40.542325,-79.906722,5,2022,,judystark,,https://www.inaturalist.org/observations/120714841,120714841
+brampton,ontario,43.646338,-79.782857,5,2022,,c-elliott,,https://www.inaturalist.org/observations/120565784,120565784
+peel,ontario,43.625935,-79.734194,5,2022,,rougebird,,https://www.inaturalist.org/observations/120364781,120364781
+grantsville,maryland,39.650212,-79.176505,5,2022,,ekreiss,,https://www.inaturalist.org/observations/120049154,120049154
+linden,virginia,38.91412,-78.101364,5,2022,,swilligaceae,,https://www.inaturalist.org/observations/117212834,117212834
+ithaca,new york,42.483987,-76.536147,5,2022,y,larixlaricina,,https://www.inaturalist.org/observations/119876952,119876952
+ithaca,new york,42.428269,-76.491618,5,2022,,rmross,,https://www.inaturalist.org/observations/118540593,118540593
+ithaca,new york,42.428269,-76.491618,5,2022,,rmross,,https://www.inaturalist.org/observations/118540593,118540593
+ithaca,new york,42.442248,-76.482041,5,2022,,t0nb0,,https://www.inaturalist.org/observations/118834117,118834117
+ithaca,new york,42.442248,-76.482041,5,2022,,t0nb0,,https://www.inaturalist.org/observations/118834117,118834117
+vestal,new york,42.091525,-75.961339,5,2022,,fm2571113,,https://www.inaturalist.org/observations/121326747,121326747
+clinton,new york,43.048911,-75.40763,5,2022,,kmkusnerik,,https://www.inaturalist.org/observations/118599157,118599157
+clinton,new york,43.048911,-75.40763,5,2022,,kmkusnerik,,https://www.inaturalist.org/observations/118599157,118599157
+pleasantville,new york,41.108067,-73.808372,5,2022,,hakimdan,,https://www.inaturalist.org/observations/118672986,118672986
+standfordville,new york,41.909278,-73.652978,5,2022,,judithcummins,,https://www.inaturalist.org/observations/119508639,119508639
+smithfield,new york,41.909278,-73.652978,5,2022,,judithcummins,,https://www.inaturalist.org/observations/119508639,119508639
+new haven,connecticut,41.3264,-72.903463,5,2022,,rashad07,,https://www.inaturalist.org/observations/118825907,118825907
+wayland,massachusetts,42.355105,-71.370728,5,2022,,thesquig,,https://www.inaturalist.org/observations/120081149,120081149
+tarrytown,new york,41.108067,-73.808372,5,2022,,hakimdan,,https://www.inaturalist.org/observations/118672986,118672986
+bothell,washington,47.769753,-122.247475,4,2022,,aithne,,https://www.inaturalist.org/observations/119488058,119488058
+bothell,washington,47.769753,-122.247475,4,2022,,aithne,,https://www.inaturalist.org/observations/119488058,119488058
+lanesboro,minnesota,43.720751,-91.980498,4,2022,,odontoblast32,,https://www.inaturalist.org/observations/119795328,119795328
+houston,minnesota,43.773287,-91.595178,4,2022,y,n0hot,,https://www.inaturalist.org/observations/118709442,118709442
+rochester,wisconsin,42.751025,-88.229675,4,2022,,silvervalk,,https://www.inaturalist.org/observations/119501932,119501932
+oak brook,illinois,41.830574,-87.933624,4,2022,,bspatafora,,https://www.inaturalist.org/observations/119443995,119443995
+oak brook,illinois,41.830574,-87.933624,4,2022,,bspatafora,,https://www.inaturalist.org/observations/119443995,119443995
+yellow springs,ohio,39.78983,-83.840775,4,2022,,peggy_sobczak,,https://www.inaturalist.org/observations/118563398,118563398
+yellow springs,ohio,39.78983,-83.840775,4,2022,,peggy_sobczak,,https://www.inaturalist.org/observations/118563398,118563398
+washington,michigan,42.735962,-83.064629,4,2022,yes,melonlike,,https://www.inaturalist.org/observations/119305220,119305220
+powell,ohio,40.155009,-83.043873,4,2022,,agentfinnegan,,https://www.inaturalist.org/observations/119740911,119740911
+powell,ohio,40.155009,-83.043873,4,2022,,agentfinnegan,,https://www.inaturalist.org/observations/119740911,119740911
+sunbury,ohio,40.237881,-82.861361,4,2022,y,ohio_teresa,,https://www.inaturalist.org/observations/116352313,116352313
+sunbury,ohio,40.237881,-82.861361,4,2022,,ohio_teresa,,https://www.inaturalist.org/observations/116352313,116352313
+detroit,michigan,42.639679,-82.855232,4,2022,,frvsnt,,https://www.inaturalist.org/observations/120536302,120536302
+granville,ohio,40.068761,-82.541938,4,2022,,sct319,,https://www.inaturalist.org/observations/124131792,124131792
+boone,north carolina,36.211505,-81.648528,4,2022,,willa_rupp,,https://www.inaturalist.org/observations/116688249,116688249
+boone,north carolina,36.211505,-81.648528,4,2022,,willa_rupp,,https://www.inaturalist.org/observations/116688249,116688249
+north canton,ohio,40.845795,-81.402948,4,2022,,sbetz3,,https://www.inaturalist.org/observations/118705567,118705567
+north canton,ohio,40.845795,-81.402948,4,2022,,sbetz3,,https://www.inaturalist.org/observations/118705567,118705567
+novelty,ohio,41.491719,-81.333907,4,2022,,ryanp,,https://www.inaturalist.org/observations/119598344,119598344
+novelty,ohio,41.491719,-81.333907,4,2022,,ryanp,,https://www.inaturalist.org/observations/119598344,119598344
+mitchell,ontario,43.456325,-81.205458,4,2022,,dbmcc09,,https://www.inaturalist.org/observations/120097084,120097084
+mitchell,ontario,43.456325,-81.205458,4,2022,,dbmcc09,,https://www.inaturalist.org/observations/120097084,120097084
+pittsburg,pennsylvania,40.482055,-79.913138,4,2022,,bill_wimley,,https://www.inaturalist.org/observations/119477152,119477152
+pittsburg,pennsylvania,40.482055,-79.913138,4,2022,,bill_wimley,,https://www.inaturalist.org/observations/119477152,119477152
+pittsburg,pennsylvania,40.482005,-79.912978,4,2022,,bill_wimley,,https://www.inaturalist.org/observations/119477675,119477675
+york,ontario,44.093487,-79.482933,4,2022,,lakehead2014,,https://www.inaturalist.org/observations/121634705,121634705
+toronto,ontario,43.745586,-79.192324,4,2022,,cycer,,https://www.inaturalist.org/observations/120353237,120353237
+toronto,ontario,43.748051,-79.191777,4,2022,,randyback,,https://www.inaturalist.org/observations/122937223,122937223
+west seneca,new york,42.85397,-78.75235,4,2022,,sdziewa,,https://www.inaturalist.org/observations/139604399,139604399
+kawartha lakes,ontario,44.353589,-78.721214,4,2022,y,theslothman,,https://www.inaturalist.org/observations/119483909,119483909
+ellicotville,new york,42.332428,-78.639175,4,2022,,vincentoliverio,,https://www.inaturalist.org/observations/119004893,119004893
+ellicotville,new york,42.332428,-78.639175,4,2022,,vincentoliverio,,https://www.inaturalist.org/observations/119004893,119004893
+williamsburg,pennsylvania,40.482005,-78.17343,4,2022,,catspit,,https://www.inaturalist.org/observations/120930825,120930825
+state college,pennsylvania,40.80563,-77.874938,4,2022,,sidneyb7,,https://www.inaturalist.org/observations/119269360,119269360
+state college,pennsylvania,40.80563,-77.874938,4,2022,,sidneyb7,,https://www.inaturalist.org/observations/119269360,119269360
+williamsport,maryland,39.583637,-77.652078,4,2022,,claire_zimmerman,,https://www.inaturalist.org/observations/116471299,116471299
+hagerstown,maryland,39.583637,-77.652078,4,2022,,claire_zimmermann,,https://www.inaturalist.org/observations/116471299,116471299
+virts corner,virginia,39.11195,-77.565842,4,2022,,amparodiez,,https://www.inaturalist.org/observations/116443973,116443973
+watkins glen,new york,42.368978,-76.88308,4,2022,,jowoods,,https://www.inaturalist.org/observations/118983598,118983598
+watkins glen,new york,42.368978,-76.88308,4,2022,,jowoods,,https://www.inaturalist.org/observations/118983598,118983598
+ithaca,new york,42.4479,-76.491692,4,2022,,bernatree,,https://www.inaturalist.org/observations/120464288,120464288
+ithaca,new york,42.4054,-76.428528,4,2022,,chelseriously,,https://www.inaturalist.org/observations/119338599,119338599
+bloomsburg,pennsylvania,41.016501,-76.400306,4,2022,,evanghouston,,https://www.inaturalist.org/observations/117450844,117450844
+bloomsburg,pennsylvania,41.016501,-76.400306,4,2022,y,evanghouston,,https://www.inaturalist.org/observations/117450844,117450844
+lititz,pennsylvania,40.239437,-76.336907,4,2022,,homoaves,,https://www.inaturalist.org/observations/120193752,120193752
+reading,pennsylvania,40.280522,-75.948928,4,2022,,clearwing_moth,,https://www.inaturalist.org/observations/121314803,121314803
+chittenango,new york,43.037588,-75.868896,4,2022,,catmanoutdoors,,https://www.inaturalist.org/observations/120224278,120224278
+scranton,pennsylvania,41.558005,-75.718995,4,2022,,cgranche,,https://www.inaturalist.org/observations/121513404,121513404
+factoryville,pennsylvania,41.558005,-75.718995,4,2022,,cgranche,,https://www.inaturalist.org/observations/121513404,121513404
+dalton,pennsylvania,41.555233,-75.717505,4,2022,,naturebr,,https://www.inaturalist.org/observations/121345424,121345424
+warrington,pennsylvania,40.256386,-75.039491,4,2022,,maryah,,https://www.inaturalist.org/observations/116769366,116769366
+jamison,pennsylvania,40.256386,-75.039491,4,2022,y,maryah,multiple,https://www.inaturalist.org/observations/116769366,116769366
+flanders,new jersey,40.821288,-74.719497,4,2022,,ryabtm3,,https://www.inaturalist.org/observations/118652323,118652323
+flanders,new jersey,40.821288,-74.719497,4,2022,yes,ryantm3,,https://www.inaturalist.org/observations/118652323,118652323
+kingston,new york,41.924217,-74.021286,4,2022,,totalcatskills,,https://www.inaturalist.org/observations/118705646,118705646
+brattleboro,vermont,42.849603,-72.587212,4,2022,,sschoenberger,,https://www.inaturalist.org/observations/119058353,119058353
+hartford,vermont,43.645742,-72.417488,4,2022,,froggydame,,https://www.inaturalist.org/observations/118204532,118204532
+hartford,vermont,43.645742,-72.417488,4,2022,,froggydame,,https://www.inaturalist.org/observations/118204532,118204532
+fitchburg,pennsylvania,42.590388,-71.781363,4,2022,y,juliette24,,https://www.inaturalist.org/observations/130533970,130533970
+fitchburg,masscheusettes,42.590388,-71.781363,4,2022,,juliette24,,https://www.inaturalist.org/observations/130533970,130533970
+boston,massachusetts,42.455197,-71.083672,4,2022,,billmac,,https://www.inaturalist.org/observations/119039408,119039408
+boston,masscheusettes,42.455197,-71.083672,4,2022,,billmac,,https://www.inaturalist.org/observations/119039408,119039408
+cape breton,nova scotia,46.128789,-60.189412,4,2022,,julescameron,,https://www.inaturalist.org/observations/121956084,121956084
+quincy,california,39.938033,-120.947145,3,2022,,mokunz,,https://www.inaturalist.org/observations/119266623,119266623
+river falls,wisconsin,44.823792,-92.74453,3,2022,,aethers1,,https://www.inaturalist.org/observations/121328815,121328815
+waukesha,wisconsin,42.99702,-88.32332,3,2022,,agsager24,,https://www.inaturalist.org/observations/109050387,109050387
+downers grove,illinois,41.784712,-88.012962,3,2022,,kathleen587,,https://www.inaturalist.org/observations/118568702,118568702
+downers grove,illinois,41.784712,-88.012962,3,2022,,kathleen587,,https://www.inaturalist.org/observations/118568702,118568702
+chicago,illinois,41.8177,-87.826387,3,2022,,frisbeenose61,,https://www.inaturalist.org/observations/116595598,116595598
+chicago,illinois,41.8177,-87.826387,3,2022,,frisbeenose61,,https://www.inaturalist.org/observations/116595598,116595598
+cleveland,ohio,41.54513,-81.636249,3,2022,,kmauraf,,https://www.inaturalist.org/observations/119241386,119241386
+pickering,ontario,43.888683,-79.16185,3,2022,,slicknjk,,https://www.inaturalist.org/observations/120376593,120376593
+nazareth,pennsylvania,40.725687,-75.249394,3,2022,,jcos,,https://www.inaturalist.org/observations/116877010,116877010
+frostburg,maryland,39.649124,-78.937452,2,2022,,aidanrf,,https://www.inaturalist.org/observations/121476245,121476245
